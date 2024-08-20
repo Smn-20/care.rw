@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "172042821442",
+    "project_id": "ubuzima-push-notifications",
+    "storage_bucket": "ubuzima-push-notifications.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:172042821442:android:73f0609f5357f24c21b2db",
+        "android_client_info": {
+          "package_name": "com.ubuzima.rw"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0rHbQ06W1YU_SEoHXgtAx4KnG69h7xA8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
