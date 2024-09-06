@@ -80,7 +80,7 @@ const Login = ({ navigation }) => {
           },
         })
         .then((res) => {
-          console.log(res.data)
+          console.log(res.data);
           setLoading(false);
           if (res.data.status) {
             setShowModal(false);
@@ -350,13 +350,15 @@ const Login = ({ navigation }) => {
             )}
 
             <TouchableOpacity
-              onPress={() => setActivePanel(activePanel === "Patient"?"Doctor":"Patient")}
+              onPress={() =>
+                setActivePanel(activePanel === "Patient" ? "Doctor" : "Patient")
+              }
               style={{
                 height: 30,
                 paddingHorizontal: 10,
-                marginTop:30,
-                width:"75%",
-                alignSelf:'center',
+                marginTop: 30,
+                width: "75%",
+                alignSelf: "center",
                 backgroundColor:
                   activePanel === "Patient" ? "#B7DAC1" : "#EAE8E0",
                 borderRadius: 10,
@@ -371,7 +373,9 @@ const Login = ({ navigation }) => {
                   fontWeight: activePanel === "Patient" ? "500" : "normal",
                 }}
               >
-                {activePanel === "Patient"?'Enter as physician':'Enter as patient'}
+                {activePanel === "Patient"
+                  ? "Enter as physician"
+                  : "Enter as patient"}
               </Text>
             </TouchableOpacity>
           </View>
@@ -388,39 +392,32 @@ const Login = ({ navigation }) => {
                   Enter your phone number to reset your password
                 </Text>
                 <TextInput
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
                   onChangeText={(text) => setPhone(text)}
                   keyboardType="phone-pad"
                   // placeholderTextColor={"#626262"}
                   placeholder={"Phone number (07********)"}
                   style={[
                     {
-                      fontSize: 14,
-                      padding: 8,
-                      backgroundColor: "#f1f4ff",
-                      borderRadius: 10,
-                      marginTop: 15,
-                      marginBottom: 35,
+                      borderBottomColor: "gray",
+                      borderBottomWidth: 0.5,
+                      height: 35,
                       width: "100%",
-                      height: 45,
-                    },
-                    focused && {
-                      borderWidth: 2,
-                      borderColor: "#626262",
-                      shadowOffset: { width: 4, height: 10 },
-                      shadowColor: "#626262",
-                      shadowOpacity: 0.2,
-                      shadowRadius: 10,
+                      backgroundColor: "#fff",
+                      color: "black",
+                      marginTop: 40,
+                      paddingHorizontal: 15,
+                      marginBottom: 20,
                     },
                   ]}
                 />
                 <View style={styles.modalButtonContainer}>
                   <TouchableOpacity
-                    style={[styles.modalButton, styles.cancelButton]}
+                    style={[styles.modalButton, { backgroundColor: "white" }]}
                     onPress={() => setShowModal(false)}
                   >
-                    <Text style={[styles.modalButtonText, { color: "red" }]}>
+                    <Text
+                      style={[styles.modalButtonText, { color: "#2FAB4F" }]}
+                    >
                       Cancel
                     </Text>
                   </TouchableOpacity>
@@ -506,6 +503,6 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
   },
   confirmButton: {
-    backgroundColor: "#38a169",
+    backgroundColor: "#2FAB4F",
   },
 });

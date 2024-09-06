@@ -7,7 +7,7 @@ import {
   Dimensions,
   TouchableOpacity,
   RefreshControl,
-  Image,
+  Modal,
 } from "react-native";
 import { baseURL } from "../../BaseUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -20,7 +20,8 @@ const windowWidth = Dimensions.get("screen").width;
 const Purchases = ({ navigation, index }) => {
   const [refreshing, setRefreshing] = useState();
   const [purchases, setPurchases] = useState([]);
-
+  const [medications, setMedications] = useState([]);
+  const [showModal, setShowModal] = useState(false);
 
   const getPurchases = async () => {
     setRefreshing(true);
@@ -36,7 +37,7 @@ const Purchases = ({ navigation, index }) => {
       })
       .then((res) => {
         setPurchases(res.data.data);
-        console.log(res.data.data);
+        console.log(res.data.data[0]);
         setRefreshing(false);
       })
       .catch((error) => {
@@ -45,6 +46,28 @@ const Purchases = ({ navigation, index }) => {
       });
   };
 
+  const getOrderDetails = async (orderId) => {
+    setRefreshing(true);
+    const token = await AsyncStorage.getItem("token");
+    const user = await AsyncStorage.getItem("user");
+    const userObj = JSON.parse(user);
+    axios
+      .get(`${baseURL}/api/patient/order-details/${orderId}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((res) => {
+        setMedications(res.data.data);
+        console.log(res.data.data[0]);
+        setRefreshing(false);
+      })
+      .catch((error) => {
+        setRefreshing(false);
+        console.log(error);
+      });
+  };
 
   const renderItem = ({ item }) => {
     return (
@@ -54,8 +77,8 @@ const Purchases = ({ navigation, index }) => {
           paddingTop: 15,
           paddingBottom: 5,
           paddingRight: 10,
-          borderColor:'gray',
-          borderWidth:0.2,
+          borderColor: "gray",
+          borderWidth: 0.2,
           alignSelf: "center",
           borderRadius: 10,
           marginTop: 10,
@@ -64,7 +87,7 @@ const Purchases = ({ navigation, index }) => {
       >
         <View style={{ flexDirection: "row" }}>
           <View style={{ width: "15%", alignItems: "center" }}>
-            <MaterialCommunityIcons name="pill" color={'black'} size={25}/>
+            <MaterialCommunityIcons name="cart" color={"black"} size={25} />
           </View>
           <View
             style={{
@@ -77,65 +100,28 @@ const Purchases = ({ navigation, index }) => {
               <View style={{ width: "70%" }}>
                 <Text
                   style={{
-                    fontSize: 13,
+                    fontSize: 12,
                     color: "black",
                     marginBottom: 5,
-                    fontWeight: "bold",
+                    fontWeight: "500",
                   }}
                 >
-                  {item.medication?.name}
+                  Date: {item.created_at.slice(0, 10)}
                 </Text>
               </View>
               <View style={{ width: "30%" }}>
                 <Text
                   style={{
                     fontSize: 12,
-                    color:"green",
-                    marginBottom: 5,
-                    fontWeight: "bold",
-                  }}
-                >
-                  Rwf {item.unit_price}
-                </Text>
-              </View>
-            </View>
-            <View style={{ flexDirection: "row" }}>
-              <View
-                style={{
-                  width: "65%",
-                  paddingRight: 8,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: "black",
+                    color: item.packed === "Yes" ? "green" : "red",
                     marginBottom: 5,
                     fontWeight: "500",
                   }}
                 >
-                  {item.branch_name}
-                </Text>
-              </View>
-              <View
-                style={{
-                  width: "35%",
-                  paddingRight: 8,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: item.packed==="Yes"?'green':'red',
-                    marginBottom: 5,
-                    fontWeight: "500",
-                  }}
-                >
-                  {item.packed==="Yes"?'PACKED':'NOT PACKED'}
+                  {item.packed === "Yes" ? "Packed" : "Not packed"}
                 </Text>
               </View>
             </View>
-
             <View style={{ flexDirection: "row" }}>
               <View
                 style={{
@@ -146,12 +132,117 @@ const Purchases = ({ navigation, index }) => {
                 <Text
                   style={{
                     fontSize: 12,
+                    color: "green",
+                    marginBottom: 5,
+                    fontWeight: "bold",
+                  }}
+                >
+                  Rwf {item.total_amount}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => {
+                  setMedications([])
+                  getOrderDetails(item.id);
+                  setShowModal(true);
+                }}
+                style={{
+                  width: "30%",
+                  height: 25,
+                  borderRadius: 10,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  backgroundColor: "#E7FAE6",
+                  paddingHorizontal: 4,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "500",
+                  }}
+                >
+                  Details
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const renderItem2 = ({ item }) => {
+    return (
+      <View
+        style={{
+          backgroundColor: "#fff",
+          paddingTop: 15,
+          paddingBottom: 5,
+          paddingRight: 10,
+          borderColor: "gray",
+          borderWidth: 0.2,
+          alignSelf: "center",
+          borderRadius: 10,
+          marginTop: 10,
+          width: "90%",
+        }}
+      >
+        <View style={{ flexDirection: "row" }}>
+          <View style={{ width: "15%", alignItems: "center" }}>
+            <MaterialCommunityIcons name="pill" color={"black"} size={25} />
+          </View>
+          <View
+            style={{
+              width: "85%",
+              justifyContent: "center",
+              marginBottom: 15,
+            }}
+          >
+            <View style={{ flexDirection: "row", marginBottom: 5 }}>
+              <View style={{ width: "100%" }}>
+                <Text
+                  style={{
+                    fontSize: 12,
                     color: "black",
                     marginBottom: 5,
                     fontWeight: "500",
                   }}
                 >
-                  Date: {item.created_at.slice(0,10)}
+                  {item.medication_name}
+                </Text>
+              </View>
+            </View>
+            <View style={{ flexDirection: "row" }}>
+              <View
+                style={{
+                  width: "70%",
+                  paddingRight: 8,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: "green",
+                    marginBottom: 5,
+                    fontWeight: "bold",
+                  }}
+                >
+                  Rwf {item.unit_price}
+                </Text>
+              </View>
+              <View
+                style={{
+                  width: "30%",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "500",
+                  }}
+                >
+                  Qty: {item.quantity}
                 </Text>
               </View>
             </View>
@@ -199,7 +290,84 @@ const Purchases = ({ navigation, index }) => {
           </Text>
         </View>
       )}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showModal}
+        onRequestClose={() => setShowModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={{ flexDirection: "row" }}>
+              <View style={{ width: "100%" }}>
+                <Text style={styles.modalTitle}>Order details</Text>
+              </View>
+            </View>
 
+            <View
+              style={{
+                maxHeight: windowHeight*0.75,
+                minHeight: windowHeight*0.3,
+              }}
+            >
+              {medications.length > 0 ? (
+                <FlatList
+                  style={{
+                    maxHeight:(windowHeight*0.75)-40,
+
+                  }}
+                  data={medications}
+                  showsVerticalScrollIndicator={false}
+                  renderItem={renderItem2}
+                  keyExtractor={(item, index) => index.toString()}
+                />
+              ) : (
+                <View
+                  style={{
+                    width: "100%",
+                    height: "30%",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text style={{ fontSize: 16, fontWeight: "bold" }}>
+                    No meds...
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-evenly",
+                width: "100%",
+                marginVertical: 20,
+                height:35
+              }}
+            >
+              <TouchableOpacity
+                style={{
+                  width: "45%",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+                onPress={() => setShowModal(false)}
+              >
+                <Text
+                  style={{
+                    color: "#2FAB4F",
+                    fontSize: 15,
+                    fontWeight: "500",
+                  }}
+                >
+                  Close
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -231,14 +399,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   modalContent: {
-    backgroundColor: "#FBF9F1",
+    backgroundColor: "#fff",
     paddingVertical: 20,
     borderRadius: 20,
     elevation: 5,
     width: "95%",
+    maxHeight: "85%",
   },
   modalTitle: {
     fontSize: 16,
+    marginLeft: "5%",
     fontWeight: "bold",
     marginBottom: 10,
   },
@@ -262,7 +432,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     marginBottom: 15,
     borderWidth: 0.3,
-    alignSelf:'center',
+    alignSelf: "center",
     borderColor: "black",
     marginTop: 5,
     width: "90%",

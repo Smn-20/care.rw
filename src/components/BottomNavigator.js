@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import {  Entypo, MaterialIcons, Ionicons, Feather } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRoute } from '@react-navigation/native';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -17,7 +18,7 @@ const windowHeight = Dimensions.get('window').height;
 
 const BottomNavigator = ({ navigation, userRole }) => {
   
-
+  const route = useRoute();
 
   return (
     <View
@@ -43,8 +44,10 @@ const BottomNavigator = ({ navigation, userRole }) => {
           navigation.navigate("PatientHome")
         }
       >
-        <Feather name="home" size={30} color="#243856" />
-        <Text style={{ color: "black", fontSize: 12 }}>Home</Text>
+        <View style={{width:40,height:40,justifyContent:'center',alignItems:'center',borderRadius:20,backgroundColor: route.name === 'PatientHome' ? "#E7FAE6":"white"}}>
+          <Feather name="home" size={25} color="#243856" />
+        </View>
+        <Text style={{ color: route.name === 'PatientHome' ? "#2FAB4F" : "black", fontSize: 13, fontWeight:'bold' }}>Home</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -53,8 +56,10 @@ const BottomNavigator = ({ navigation, userRole }) => {
           navigation.navigate("Documents")
         }
       >
-        <Image source={require('../images/docs.png')} style={{width:30,height:30}} resizeMode="contain"/>
-        <Text style={{ color: "black", fontSize: 12 }}>Documents</Text>
+        <View style={{width:40,height:40,justifyContent:'center',alignItems:'center',borderRadius:20,backgroundColor: route.name === 'Documents' ? "#E7FAE6":"white"}}>
+        <Image source={require('../images/docs.png')} style={{width:25,height:25}} resizeMode="contain"/>
+        </View>
+        <Text style={{ color: route.name === 'Documents' ? "#2FAB4F" : "black", fontSize: 12, fontWeight:'bold' }}>Documents</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -63,16 +68,20 @@ const BottomNavigator = ({ navigation, userRole }) => {
           navigation.navigate("FollowUps")
         }
       >
-        <Image source={require('../images/meds.png')} style={{width:30,height:30}} resizeMode="contain"/>
-        <Text style={{ color: "black", fontSize: 12 }}>My Medication</Text>
+        <View style={{width:40,height:40,justifyContent:'center',alignItems:'center',borderRadius:20,backgroundColor: route.name === 'FollowUps' ? "#E7FAE6":"white"}}>
+          <Image source={require('../images/meds.png')} style={{width:25,height:25}} resizeMode="contain"/>
+        </View>
+        <Text style={{ color: route.name === 'FollowUps' ? "#2FAB4F" : "black", fontSize: 12, fontWeight:'bold' }}>My Medication</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={{ justifyContent: "center", alignItems: "center", width: "25%" }}
         onPress={() => navigation.navigate("Tokens")}
       >
-        <Image source={require('../images/tokens.png')} style={{width:30,height:30}} resizeMode="contain"/>
-        <Text style={{ color: "black", fontSize: 12 }}>Tokens</Text>
+        <View style={{width:40,height:40,justifyContent:'center',alignItems:'center',borderRadius:20,backgroundColor: route.name === 'Tokens' ? "#E7FAE6":"white"}}>
+          <Image source={require('../images/tokens.png')} style={{width:25,height:25}} resizeMode="contain"/>
+        </View>
+        <Text style={{ color: route.name === 'Tokens' ? "#2FAB4F" : "black", fontSize: 12, fontWeight:'bold' }}>Tokens</Text>
       </TouchableOpacity>
       </>
       :
@@ -83,7 +92,7 @@ const BottomNavigator = ({ navigation, userRole }) => {
           navigation.navigate("DoctorHome")
         }
       >
-        <Feather name="home" size={30} color="#243856" />
+        <Feather name="home" size={25} color="#243856" />
         <Text style={{ color: "black", fontSize: 12 }}>Home</Text>
       </TouchableOpacity>
 
@@ -93,7 +102,7 @@ const BottomNavigator = ({ navigation, userRole }) => {
           navigation.navigate("Chats")
         }
       >
-        <Ionicons name="chatbubble-ellipses-outline" size={30} color="#243856"/>
+        <Ionicons name="chatbubble-ellipses-outline" size={25} color="#243856"/>
         <Text style={{ color: "black", fontSize: 12 }}>Chats</Text>
       </TouchableOpacity>
 
@@ -102,7 +111,7 @@ const BottomNavigator = ({ navigation, userRole }) => {
         style={{ justifyContent: "center", alignItems: "center", width: "33%" }}
         onPress={() => navigation.navigate("cashboard")}
       >
-        <Ionicons name="wallet-outline" size={30} color="#243856"/>
+        <Ionicons name="wallet-outline" size={25} color="#243856"/>
         <Text style={{ color: "black", fontSize: 12 }}>Cashboard</Text>
       </TouchableOpacity>
       </>

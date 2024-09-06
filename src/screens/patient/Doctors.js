@@ -265,7 +265,7 @@ const Doctors = ({ navigation, index }) => {
     return (
       <View
         style={{
-          backgroundColor: "#F5F4EC",
+          backgroundColor: "#F1F5F9",
           paddingTop: 15,
           paddingBottom: 5,
           paddingRight: 10,
@@ -456,7 +456,7 @@ const Doctors = ({ navigation, index }) => {
         <FlatList
           contentContainerStyle={{
             paddingBottom: 100,
-            height:windowHeight-(windowHeight*13/40+130),
+            height:windowHeight-(windowHeight*13/40+200),
           }}
           data={doctors}
           showsVerticalScrollIndicator={false}
@@ -473,7 +473,7 @@ const Doctors = ({ navigation, index }) => {
         <View
           style={{
             width: "100%",
-            height: "100%",
+            height:windowHeight-(windowHeight*13/40+200),
             
             justifyContent: "center",
             alignItems: "center",
@@ -749,19 +749,20 @@ const Doctors = ({ navigation, index }) => {
         }}
         style={{
           flexDirection: "row",
-          backgroundColor: "#178838",
+          backgroundColor: "#CDEF84",
           height: 40,
-          bottom: 5,
-          right: 5,
+          bottom: 8,
+          right: 10,
           position: "absolute",
           alignItems: "center",
           justifyContent: "center",
-          borderRadius: 20,
+          borderRadius: 10,
           marginTop: 5,
           width: 40,
+          ...styles.shadow
         }}
       >
-        <Entypo color={"white"} name="plus" size={20} />
+        <Entypo color={"black"} name="plus" size={20} />
       </TouchableOpacity>
     </View>
   );
@@ -868,5 +869,16 @@ const styles = StyleSheet.create({
   inputSearchStyle: {
     height: 40,
     fontSize: 16,
+  },
+  shadow: {
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+
+    elevation: 8,
   },
 });

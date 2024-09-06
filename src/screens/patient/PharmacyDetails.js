@@ -217,75 +217,67 @@ const PharmacyDetails = ({ navigation, route }) => {
   }, []);
 
   return (
-    <View styles={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" translucent={false} />
-      <View>
+      <View
+        style={{
+          height: Platform.OS === "ios" ? 100 : 50,
+          borderBottomWidth: 0.2,
+          borderBottomColor: "gray",
+          backgroundColor: "#F1F5F9",
+          paddingTop: Platform.OS === "ios" ? 60 : 15,
+        }}
+      >
         <View
           style={{
-            height: Platform.OS === "ios" ?100:50,
-            borderBottomWidth: 0.2,
-            borderBottomColor: "gray",
-            backgroundColor: "#EAE8E0",
-            paddingTop: Platform.OS === "ios" ? 60:15,
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
           }}
         >
           <View
             style={{
+              width: "20%",
               flexDirection: "row",
               justifyContent: "center",
               alignItems: "center",
             }}
           >
-            <View
-              style={{
-                width: "20%",
-                flexDirection: "row",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <TouchableOpacity onPress={() => navigation.goBack()}>
-                <AntDesign
-                  style={{ marginRight: 10 }}
-                  name="arrowleft"
-                  size={18}
-                />
-              </TouchableOpacity>
-            </View>
-            <View
-              style={{
-                width: "60%",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            ></View>
-            <TouchableOpacity
-              onPress={() => console.log("")}
-              style={{
-                width: "20%",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <Entypo name="dots-three-vertical" size={18} />
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <AntDesign
+                style={{ marginRight: 10 }}
+                name="arrowleft"
+                size={18}
+              />
             </TouchableOpacity>
-            {/* <TouchableOpacity onPress={()=>console.log("")} style={{width:'8%',borderRadius:4,height:25,justifyContent:"center",alignItems:'center',backgroundColor:"#9C936D"}}>
-         <AntDesign name="search1" size={18}/>
-        </TouchableOpacity> */}
           </View>
+          <View
+            style={{
+              width: "60%",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          />
+          <TouchableOpacity
+            onPress={() => console.log("")}
+            style={{
+              width: "20%",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Entypo name="dots-three-vertical" size={18} />
+          </TouchableOpacity>
         </View>
-        <View
-          style={{
-            height: windowHeight - 100,
-            backgroundColor: "#EAE8E0",
-            padding: 10,
-          }}
-        >
+      </View>
+
+      
           <View
             style={{
               alignItems: "center",
               justifyContent: "center",
-              marginTop: 5,
+              paddingTop: 5,
+              backgroundColor:'white'
             }}
           >
             <Image
@@ -293,10 +285,10 @@ const PharmacyDetails = ({ navigation, route }) => {
               resizeMode="cover"
               style={{
                 backgroundColor: "white",
-                width: 100, // Adjust the width as per your design
-                height: 100, // Adjust the height as per your design
-                borderRadius: 50, // Set the borderRadius to half of width/height to create a circle
-                overflow: "hidden", // Clip the image to the rounded shape
+                width: 100,
+                height: 100,
+                borderRadius: 50,
+                overflow: "hidden",
               }}
             />
             <View>
@@ -312,104 +304,140 @@ const PharmacyDetails = ({ navigation, route }) => {
               </Text>
             </View>
           </View>
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <Text style={{ marginTop: 10, textAlign: "center" }}>
-              {route.params.phone}
-            </Text>
-            <Text style={{ marginTop: 10, textAlign: "center" }}>
-              8am - 9pm{" "}
-            </Text>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-evenly",
-                marginTop: 20,
-              }}
-            >
-              <View style={{ justifyContent: "center", alignItems: "center" }}>
-                <TouchableOpacity
-                  onPress={()=>openMaps()}
-                  style={{
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: windowWidth / 6,
-                    width: windowWidth / 6,
-                    backgroundColor: "#DEE6C5",
-                    borderRadius: windowWidth / 12,
-                  }}
-                >
+          <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={10}
+        style={{ flex: 1 }}
+      >
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20,backgroundColor: 'white' }}>
+          <Text style={{ marginTop: 10, textAlign: "center" }}>
+            {route.params.phone}
+          </Text>
+          <Text style={{ marginTop: 10, textAlign: "center" }}>
+            8am - 9pm{" "}
+          </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-evenly",
+              marginTop: 20,
+            }}
+          >
+            <View style={{ justifyContent: "center", alignItems: "center" }}>
+              <TouchableOpacity
+                onPress={() => openMaps()}
+                style={{
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: windowWidth / 7,
+                  width: windowWidth / 7,
+                  backgroundColor: "#F3FDEC",
+                  borderRadius: windowWidth / 14,
+                }}
+              >
+                <View style={{
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: windowWidth / 8,
+                  width: windowWidth / 8,
+                  backgroundColor: "#E2FAD1",
+                  borderRadius: windowWidth / 16,
+                }}>
                   <Ionicons name="location-outline" size={24} />
-                </TouchableOpacity>
-                <Text style={{ marginTop: 10 }}>Direction</Text>
-              </View>
-
-              <View style={{ justifyContent: "center", alignItems: "center" }}>
-                <TouchableOpacity
-                  onPress={() => setIsVisible(true)}
-                  style={{
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: windowWidth / 6,
-                    width: windowWidth / 6,
-                    backgroundColor: "#DEE6C5",
-                    borderRadius: windowWidth / 12,
-                  }}
-                >
-                  <Feather name="upload-cloud" size={24} />
-                </TouchableOpacity>
-                <Text style={{ marginTop: 10 }}>Upload Prescription</Text>
-              </View>
-
-              <View style={{ justifyContent: "center", alignItems: "center" }}>
-                <TouchableOpacity
-                  onPress={()=>openWhatsApp()}
-                  style={{
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: windowWidth / 6,
-                    width: windowWidth / 6,
-                    backgroundColor: "#DEE6C5",
-                    borderRadius: windowWidth / 12,
-                  }}
-                >
-                  <FontAwesome name="whatsapp" size={24} />
-                </TouchableOpacity>
-                <Text style={{ marginTop: 10 }}>WhatsApp</Text>
-              </View>
+                </View>
+              </TouchableOpacity>
+              <Text style={{ marginTop: 10 }}>Direction</Text>
             </View>
 
-            <KeyboardAvoidingView style={styles.searchBox}>
-              <View style={{ justifyContent: "center", marginHorizontal: 10 }}>
-                <Ionicons name="search" size={24} color="gray" />
-              </View>
-              <TextInput
-                placeholder="Search Medicines"
-                keyboardType="default"
-                placeholderTextColor="#666666"
-                onChangeText={(value) => {
-                  search(value);
+            <View style={{ justifyContent: "center", alignItems: "center" }}>
+              <TouchableOpacity
+                onPress={() => setIsVisible(true)}
+                style={{
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: windowWidth / 7,
+                  width: windowWidth / 7,
+                  backgroundColor: "#F3FDEC",
+                  borderRadius: windowWidth / 14,
                 }}
-                style={[
-                  styles.textInput,
-                  {
-                    color: "black",
-                  },
-                ]}
-                autoCapitalize="none"
-              />
-            </KeyboardAvoidingView>
+              >
+                <View style={{
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: windowWidth / 8,
+                  width: windowWidth / 8,
+                  backgroundColor: "#E2FAD1",
+                  borderRadius: windowWidth / 16,
+                }}>
+                  <Feather name="upload-cloud" size={24} />
+                </View>
+              </TouchableOpacity>
+              <Text style={{ marginTop: 10 }}>Upload Prescription</Text>
+            </View>
 
-            <View
-              style={{
-                backgroundColor: "#DBDFC9",
-                borderRadius: 20,
-                marginVertical:10,
-                paddingBottom:20
+            <View style={{ justifyContent: "center", alignItems: "center" }}>
+              <TouchableOpacity
+                onPress={() => openWhatsApp()}
+                style={{
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: windowWidth / 7,
+                  width: windowWidth / 7,
+                  backgroundColor: "#F3FDEC",
+                  borderRadius: windowWidth / 14
+                }}
+              >
+                <View style={{
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: windowWidth / 8,
+                  width: windowWidth / 8,
+                  backgroundColor: "#E2FAD1",
+                  borderRadius: windowWidth / 16,
+                }}>
+                  <FontAwesome name="whatsapp" size={24} />
+                </View>
+              </TouchableOpacity>
+              <Text style={{ marginTop: 10 }}>WhatsApp</Text>
+            </View>
+          </View>
+
+          <View style={styles.searchBox}>
+            <View style={{ justifyContent: "center", marginHorizontal: 10 }}>
+              <Ionicons name="search" size={24} color="gray" />
+            </View>
+            <TextInput
+              placeholder="Search Medicines"
+              keyboardType="default"
+              placeholderTextColor="#666666"
+              onChangeText={(value) => {
+                search(value);
               }}
-            >
-              {route.params.status!=='closed' && medicines.map((el) => {
+              style={[
+                styles.textInput,
+                {
+                  color: "black",
+                },
+              ]}
+              autoCapitalize="none"
+            />
+          </View>
+
+          <View
+            style={{
+              backgroundColor: "#F5F6F5",
+              borderRadius: 20,
+              width:'95%',
+              alignSelf:'center',
+              marginVertical: 10,
+              paddingBottom: 20,
+            }}
+          >
+            {route.params.status !== "closed" &&
+              medicines.map((el) => {
                 return (
                   <View
+                    key={el.id}
                     style={{
                       flexDirection: "row",
                       justifyContent: "space-around",
@@ -431,7 +459,7 @@ const PharmacyDetails = ({ navigation, route }) => {
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
-                        backgroundColor: "#F5F4EC",
+                        backgroundColor: "#fff",
                         width: "90%",
                         paddingHorizontal: 10,
                         height: windowHeight / 15,
@@ -442,7 +470,7 @@ const PharmacyDetails = ({ navigation, route }) => {
                         <Text
                           style={{
                             color: "#000",
-                            fontWeight: 500,
+                            fontWeight: "500",
                             marginLeft: 20,
                           }}
                         >
@@ -457,26 +485,19 @@ const PharmacyDetails = ({ navigation, route }) => {
                           {el.unit_price} Rwf
                         </Text>
                       </View>
-                      {/* <View
-               style={{
-                 width: "40%",
-                 flexDirection:"row",
-                 height: "60%",
-                 justifyContent: "center",
-                 alignItems: "center",
-                 borderRadius: 20,
-               }}
-             >
-               <Text style={{color:'#178838'}}>2000-2500 Rwf</Text>
-             </View> */}
                     </TouchableOpacity>
                   </View>
                 );
               })}
-              {route.params.status==='closed'&&<Text style={{textAlign:'center',marginTop:50}}>Pharmacy closed</Text>}
-            </View>
-          </ScrollView>
-          <Modal
+            {route.params.status === "closed" && (
+              <Text style={{ textAlign: "center", marginTop: 50 }}>
+                Pharmacy closed
+              </Text>
+            )}
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+      <Modal
             visible={isVisible}
             transparent={true}
             animationType={"slide"}
@@ -489,7 +510,7 @@ const PharmacyDetails = ({ navigation, route }) => {
                 style={{
                   flex: 1,
                   backgroundColor: "rgba(0,0,0,0.6)",
-                  justifyContent: "center",
+                  justifyContent: "flex-end",
                   alignItems: "center",
                 }}
               >
@@ -497,44 +518,35 @@ const PharmacyDetails = ({ navigation, route }) => {
                   <View>
                     <View
                       style={{
-                        width: "98%",
+                        width: windowWidth-20,
                         backgroundColor: "#fff",
                         alignSelf: "center",
                         borderRadius: 20,
                       }}
                     >
                       <KeyboardAvoidingView behavior="position">
-                      <View
+                      <TouchableOpacity
+                        onPress={()=>setIsVisible(false)}
                         style={{
                           backgroundColor: "white",
                           width: "100%",
                           borderTopRightRadius: 20,
                           borderTopLeftRadius: 20,
-                          borderBottomWidth: 0.3,
-                          borderBottomColor: "gray",
                           marginLeft: 0,
                           height: 60,
-                          justifyContent: "center",
+                          justifyContent: "flex-start",
                           alignItems: "center",
                         }}
                       >
-                        <Text
-                          style={{
-                            color: "#000",
-                            fontSize: 20,
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Upload Prescription
-                        </Text>
-                      </View>
+                        <View  style={{width:60,height:5,borderRadius:2.5,backgroundColor:'black',marginTop:10}}></View>
+                      </TouchableOpacity>
                       <Text
                         style={{
                           color: "#000",
-                          fontSize: 18,
-                          fontWeight: "bold",
-                          textAlign: "center",
+                          fontSize: 16,
+                          fontWeight: "500",
                           marginTop: 10,
+                          marginLeft:'5%'
                         }}
                       >
                         Select Insurance Company
@@ -564,10 +576,10 @@ const PharmacyDetails = ({ navigation, route }) => {
                       <Text
                         style={{
                           color: "#000",
-                          fontSize: 18,
-                          fontWeight: "bold",
-                          textAlign: "center",
+                          fontSize: 16,
+                          fontWeight: "500",
                           marginTop: 10,
+                          marginLeft:'5%'
                         }}
                       >
                         Enter Insurance Code
@@ -617,11 +629,11 @@ const PharmacyDetails = ({ navigation, route }) => {
                             alignItems: "center",
                             height: 40,
                             width: "40%",
-                            backgroundColor: "#D4E660",
+                            backgroundColor: "#2FAB4F",
                             borderRadius: 20,
                           }}
                         >
-                          <Text style={{ fontWeight: "500" }}>
+                          <Text style={{ fontWeight: "500", color:'white' }}>
                             Take Picture
                           </Text>
                         </TouchableOpacity>
@@ -670,7 +682,28 @@ const PharmacyDetails = ({ navigation, route }) => {
                                 borderRadius: 15,
                               }}
                             >
-                              <Entypo color={"grey"} name="image" size={40} />
+                              <TouchableOpacity
+                                onPress={() => setIsVisible(true)}
+                                style={{
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  height: windowWidth / 7,
+                                  width: windowWidth / 7,
+                                  backgroundColor: "#F3FDEC",
+                                  borderRadius: windowWidth / 14,
+                                }}
+                              >
+                                <View style={{
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  height: windowWidth / 8,
+                                  width: windowWidth / 8,
+                                  backgroundColor: "#E2FAD1",
+                                  borderRadius: windowWidth / 16,
+                                }}>
+                                  <Feather color="#419803" name="camera" size={24} />
+                                </View>
+                              </TouchableOpacity>
                             </View>
                           )}
                         </View>
@@ -679,64 +712,33 @@ const PharmacyDetails = ({ navigation, route }) => {
                       <View
                         style={{
                           flexDirection: "row",
-                          borderTopColor: "grey",
-                          borderTopWidth: 0.6,
                           marginTop: 20,
+                          width: "100%",
+                          justifyContent: "center",
+                          alignItems: "center",
                           backgroundColor: "#fff",
                           borderBottomRightRadius: 20,
                           borderBottomLeftRadius: 20,
                         }}
                       >
-                        {/* Cancel */}
-                        <View style={{ width: "50%" }}>
-                          <TouchableOpacity
-                            onPress={() => {
-                              setIsVisible(!isVisible);
-                            }}
-                          >
-                            <View
-                              style={{
-                                height: 50,
-                                width: 100,
-                                width: "100%",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                borderRightColor: "grey",
-                                borderRightWidth: 0.5,
-                              }}
-                            >
-                              <Text style={{ color: "#000", fontSize: 20 }}>
-                                Cancel
-                              </Text>
-                            </View>
-                          </TouchableOpacity>
-                        </View>
-                        {/* submit */}
-                        <View style={{ width: "50%" }}>
-                          <TouchableOpacity
-                            onPress={() => {
-                              uploadPrescription();
-                            }}
-                          >
-                            <View
-                              style={{
-                                height: 50,
-                                width: 100,
-                                width: "100%",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
-                              {loading ? (
-                                <ActivityIndicator size="lg" color="black" />
-                              ) : (
-                                <Text style={{ color: "#000", fontSize: 20 }}>
-                                  submit
-                                </Text>
-                              )}
-                            </View>
-                          </TouchableOpacity>
-                        </View>
+                        <TouchableOpacity
+                          onPress={() => uploadPrescription()}
+                          style={{
+                            justifyContent: "center",
+                            alignItems: "center",
+                            alignSelf: "center",
+                            height: 40,
+                            width: "90%",
+                            marginBottom:20,
+                            backgroundColor: "#2FAB4F",
+                            borderRadius: 20,
+                          }}
+                        >
+                          <Text style={{ fontWeight: "500",color: 'white' }}>
+                            Send prescription
+                          </Text>
+                        </TouchableOpacity>
+                       
                       </View>
                     </View>
                   </View>
@@ -744,9 +746,8 @@ const PharmacyDetails = ({ navigation, route }) => {
               </View>
             </TouchableWithoutFeedback>
           </Modal>
-        </View>
-      </View>
     </View>
+
   );
 };
 
@@ -755,10 +756,11 @@ export default PharmacyDetails;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor:'white'
   },
   searchBox: {
     flexDirection: "row",
-    backgroundColor: "#DEDBCE",
+    backgroundColor: "#E2FAD1",
     height: 40,
     marginTop: 10,
     width: "90%",

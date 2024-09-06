@@ -139,7 +139,7 @@ const Documents = ({ navigation }) => {
       />
       <View
         style={{
-          backgroundColor: "#EAE8E0",
+          backgroundColor: "#F8FAFC",
           justifyContent: "center",
           alignItems: "center",
           height: "12%",
@@ -224,6 +224,7 @@ const Documents = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor:'white'
   },
   tableRow: { flexDirection: "row", borderBottomWidth: 1, borderColor: "#ddd" },
   tableCell: {

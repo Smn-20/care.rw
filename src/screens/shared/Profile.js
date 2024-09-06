@@ -7,14 +7,16 @@ import {
   TouchableOpacity,
   View,
   Image,
+  KeyboardAvoidingView,
+  Platform,
   Modal,
   TextInput,
-  ActivityIndicator
+  ActivityIndicator,
 } from "react-native";
-import React, { useState, useEffect, useContext } from "react";
-import { AntDesign, Entypo, Feather } from "@expo/vector-icons";
+import React, { useState, useEffect, useContext, useRef } from "react";
+import { AntDesign, Entypo, Ionicons } from "@expo/vector-icons";
 import { AuthContext } from "../../context/context";
-import axios from 'axios';
+import axios from "axios";
 import { baseURL } from "../../BaseUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
@@ -32,13 +34,82 @@ const Profile = ({ navigation }) => {
   const [newPassword, setNewPassword] = useState();
   const [confirmPassword, setConfirmPassword] = useState();
   const [showModal, setShowModal] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const context = useContext(AuthContext);
 
+  const [firstName, setFirstName] = useState();
+  const [lastName, setLastName] = useState();
+  const [email, setEmail] = useState();
+  const [phone, setPhone] = useState();
+
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const inputs = useRef([]);
+
   const getProfile = async () => {
     const user = await AsyncStorage.getItem("user");
-    console.log(user)
-    setProfile(JSON.parse(user));
+    const user_ = JSON.parse(user);
+    setFirstName(user_.first_name);
+    setLastName(user_.last_name);
+    setEmail(user_.email);
+    setPhone(user_.phone);
+    setProfile(user_);
+  };
+
+  const handleChange = (text, index) => {
+    if (isNaN(text)) return;
+
+    const newOtp = [...otp];
+    newOtp[index] = text;
+
+    setOtp(newOtp);
+
+    // Move to the next input if there's a next input
+    if (text && index < 5) {
+      inputs.current[index + 1].focus();
+    }
+  };
+
+  const handleKeyPress = (e, index) => {
+    if (e.nativeEvent.key === "Backspace" && otp[index] === "") {
+      // Move to the previous input if there's a previous input
+      if (index > 0) {
+        inputs.current[index - 1].focus();
+      }
+    }
+  };
+
+  const verify = () => {
+    if (otp.join("").length > 5) {
+      setLoading(true);
+      confirmPhone(otp.join(""));
+    } else {
+      alert("enter a valid otp");
+    }
+  };
+
+  const confirmPhone = (otp_) => {
+    const postObj = JSON.stringify({
+      user_id: profile?.id,
+      otp: otp_,
+      new_phone: phone,
+    });
+    axios
+      .post(`${baseURL}/api/confirm-phone`, postObj, {
+        headers: { "Content-Type": "application/json" },
+      })
+      .then((res) => {
+        if (res.data.status === true) {
+          alert("Phone successfully updated!");
+          setShowOtpModal(false);
+          handleLogout();
+        } else {
+          alert("Something went wrong");
+        }
+      })
+      .catch((err) => {
+        alert(err.message);
+      });
   };
 
   const pickProfileImage = async () => {
@@ -58,16 +129,16 @@ const Profile = ({ navigation }) => {
   };
 
   const changePassword = async () => {
-    if(!currentPassword || !newPassword || !confirmPassword){
-      alert("Fill the form!")
-    }else{
-      if(newPassword!==confirmPassword){
-        alert("New password doesn't match the confirmation password!")
-      }else{
-        setLoading(true)
-        const token = await AsyncStorage.getItem('token')
-        const user = await AsyncStorage.getItem('user')
-        const user_id = JSON.parse(user).id
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      alert("Fill the form!");
+    } else {
+      if (newPassword !== confirmPassword) {
+        alert("New password doesn't match the confirmation password!");
+      } else {
+        setLoading(true);
+        const token = await AsyncStorage.getItem("token");
+        const user = await AsyncStorage.getItem("user");
+        const user_id = JSON.parse(user).id;
         const postObj = JSON.stringify({
           user_id: user_id,
           current_password: currentPassword,
@@ -75,73 +146,81 @@ const Profile = ({ navigation }) => {
           new_password_confirmation: confirmPassword,
         });
         axios
-      .post(`${baseURL}/api/change-password`, postObj, {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      })
-      .then((res) => {
-        setLoading(false);
-        setShowModal(false);
-        alert("Password changed successfully!");
-        context.signOut()
-       
-      })
-      .catch((error) => {
-        setLoading(false);
-        setShowModal(false)
-        alert(error.message);
-      });
-
+          .post(`${baseURL}/api/change-password`, postObj, {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          })
+          .then((res) => {
+            setLoading(false);
+            setShowModal(false);
+            alert("Password changed successfully!");
+            context.signOut();
+          })
+          .catch((error) => {
+            setLoading(false);
+            setShowModal(false);
+            alert(error.message);
+          });
       }
     }
-  }
+  };
 
   const handleSubmit = async () => {
-    const token = await AsyncStorage.getItem('token')
+    const token = await AsyncStorage.getItem("token");
     setLoading(true);
-      const postObj = new FormData();
+    const postObj = new FormData();
+    if (profile.user_type === "patient") {
+      postObj.append("first_name", firstName || profile.first_name);
+      postObj.append("last_name", lastName || profile.last_name);
+      postObj.append("phone", phone || profile.phone);
+    }
 
-      postObj.append("fullname", profile.fullname);
-      postObj.append("email", profile.email);
-      postObj.append("phone", profile.phone);
-      postObj.append("date_of_birth", profile.date_of_birth);
-      postObj.append("other_info", profile.other_info);
-      postObj.append("registration_number", profile.registration_number);
-      postObj.append("type", profile.type);
-      postObj.append("qualification", profile.qualification);
-      if(imageUrl){
-        postObj.append("profile_image", {
-          type: "image/jpg",
-          uri: imageUrl,
-          name: "my_image.jpg",
-        });
-      }
-
-      
-      axios
-        .post(`${baseURL}/api/update-user/${profile?.id}`, postObj,{headers:{"Content-Type": "multipart/form-data","Authorization": `Bearer ${token}`}})
-        .then(async(res) => {
-          setLoading(false)
-          if (res.data.success == true) {
-            setProfile(res.data.data)
-            await AsyncStorage.setItem('user',JSON.stringify(res.data.data))
-            alert("Successfully Updated");
-            setShowProfileModal(false)
+    postObj.append("email", email || profile.email);
+    postObj.append("gender", profile.gender);
+    if (imageUrl) {
+      postObj.append("profile_image", {
+        type: "image/jpg",
+        uri: imageUrl,
+        name: "my_image.jpg",
+      });
+    }
+    axios
+      .post(profile.user_type==='patient'?`${baseURL}/api/user/${profile?.id}`:`${baseURL}/api/doctor/${profile?.id}`, postObj, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then(async (res) => {
+        setLoading(false);
+        if (res.data.status) {
+          console.log(res.data.data)
+          setProfile(res.data.data);
+          await AsyncStorage.setItem("user", JSON.stringify(res.data.data));
+          setShowProfileModal(false);
+          if (phone !== profile.phone) {
+            setShowOtpModal(true);
           } else {
-            alert("Something went wrong!");
+            alert("Successfully Updated");
           }
-        })
-        .catch((err) => {
-          setLoading(false)
-          console.log(err.message);
-        });
-  }
+        } else {
+          console.log(res.data);
+          alert("Something went wrong!");
+        }
+      })
+      .catch((err) => {
+        setLoading(false);
+        console.log('yuyuyu')
+        console.log(err.message);
+      });
+  };
+
 
 
   const handleLogout = async () => {
-    context.signOut()
+    context.signOut();
     // const token = await AsyncStorage.getItem('token')
     // setLoading(true);
     // const postObj = JSON.stringify({
@@ -155,24 +234,21 @@ const Profile = ({ navigation }) => {
     //   type: profile.type,
     //   qualification: profile.qualification
     // });
-   
 
-      
-      // axios
-      //   .post(`${baseURL}/api/update-user/${profile?.id}`, postObj,{headers:{"Content-Type": "application/json","Authorization": `Bearer ${token}`}})
-      //   .then((res) => {
-      //     setLoading(false)
-      //     console.log(res.data);
-      //     if (res.data.success == true) {
-      //       context.signOut()
-      //     }
-      //   })
-      //   .catch((err) => {
-      //     setLoading(false)
-      //     console.log(err);
-      //   });
-  }
-
+    // axios
+    //   .post(`${baseURL}/api/update-user/${profile?.id}`, postObj,{headers:{"Content-Type": "application/json","Authorization": `Bearer ${token}`}})
+    //   .then((res) => {
+    //     setLoading(false)
+    //     console.log(res.data);
+    //     if (res.data.success == true) {
+    //       context.signOut()
+    //     }
+    //   })
+    //   .catch((err) => {
+    //     setLoading(false)
+    //     console.log(err);
+    //   });
+  };
 
   useEffect(() => {
     getProfile();
@@ -184,14 +260,14 @@ const Profile = ({ navigation }) => {
       <View
         style={{
           flexDirection: "row",
-          backgroundColor: "#EAE8E0",
+          backgroundColor: "#F8FAFC",
           height: height / 10,
           width: "100%",
-          paddingTop:10
+          paddingTop: 10,
         }}
       >
         <TouchableOpacity
-          onPress={()=>navigation.goBack()}
+          onPress={() => navigation.goBack()}
           style={{
             width: "25%",
             justifyContent: "center",
@@ -199,7 +275,7 @@ const Profile = ({ navigation }) => {
             marginTop: 20,
           }}
         >
-          <AntDesign name="arrowleft" size={18}/>
+          <AntDesign name="arrowleft" size={18} />
         </TouchableOpacity>
         <View
           style={{
@@ -219,16 +295,29 @@ const Profile = ({ navigation }) => {
             marginTop: 20,
           }}
         ></View>
-
       </View>
       <ScrollView
         contentContainerStyle={{ width: width }}
         showsVerticalScrollIndicator={false}
       >
         <View style={{ width: "80%", alignSelf: "center" }}>
-          <View style={{ alignItems: "center", justifyContent: "center",marginTop:10 }}>
+          <View
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+              marginTop: 10,
+            }}
+          >
             <Image
-              source={profile?.profile_image_url?{uri:`${baseURL}/${profile?.profile_image_url}?${new Date()}`}:require("../../images/user1.png")}
+              source={
+                profile?.profile_image
+                  ? {
+                      uri: `${
+                        profile?.profile_image
+                      }?${new Date()}`,
+                    }
+                  : require("../../images/user1.png")
+              }
               resizeMode="contain"
               style={{
                 backgroundColor: "white",
@@ -238,11 +327,9 @@ const Profile = ({ navigation }) => {
                 overflow: "hidden", // Clip the image to the rounded shape
               }}
             />
-            {profile?.type==="Doctor" && (
-            <TouchableOpacity onPress={()=>setShowProfileModal(true)}>
-             <Text style={{color:'blue'}}>Edit profile</Text>
+            <TouchableOpacity onPress={() => setShowProfileModal(true)}>
+              <Text style={{ color: "#669bbc" }}>Edit profile</Text>
             </TouchableOpacity>
-            )}
           </View>
 
           {/* <ModalComponent /> */}
@@ -287,7 +374,9 @@ const Profile = ({ navigation }) => {
                 fontSize: 14,
               }}
             >
-              { profile?.first_name? profile?.first_name+" "+profile?.last_name:profile?.names}
+              {profile?.first_name
+                ? profile?.first_name + " " + profile?.last_name
+                : profile?.names}
             </Text>
           </View>
 
@@ -407,7 +496,7 @@ const Profile = ({ navigation }) => {
 
           <TouchableOpacity
             onPress={() => {
-             setShowModal(true);
+              setShowModal(true);
             }}
             style={{
               flexDirection: "row",
@@ -444,11 +533,7 @@ const Profile = ({ navigation }) => {
                 padding: 5,
               }}
             >
-              <Entypo
-                name="key"
-                size={18}
-                color="#000"
-              />
+              <Entypo name="key" size={18} color="#000" />
             </View>
           </TouchableOpacity>
 
@@ -463,7 +548,7 @@ const Profile = ({ navigation }) => {
             <TouchableOpacity
               onPress={() => handleLogout()}
               style={{
-                marginBottom:30,
+                marginBottom: 30,
                 backgroundColor: "#178838",
                 paddingVertical: 10,
                 paddingHorizontal: 10,
@@ -480,166 +565,346 @@ const Profile = ({ navigation }) => {
                 }}
               >
                 {loading ? (
-                    <ActivityIndicator size={"small"} color="white" />
-                  ) : (
-                    "Logout"
-                  )}
+                  <ActivityIndicator size={"small"} color="white" />
+                ) : (
+                  "Logout"
+                )}
               </Text>
             </TouchableOpacity>
           </View>
         </View>
         <Modal
-            animationType="slide"
-            transparent={true}
-            visible={showModal}
-            onRequestClose={() => setShowModal(false)}
-          >
-            <View style={styles.modalContainer}>
-              <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>
-                  Change your password
-                </Text>
-                <TextInput
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  onChangeText={(text) => setCurrentPassword(text)}
-                  placeholderTextColor={"#626262"}
-                  placeholder={"Current password"}
-                  style={[
-                    {
-                      fontSize: 14,
-                      padding: 8,
-                      backgroundColor: "#f1f4ff",
-                      borderRadius: 10,
-                      marginTop: 15,
-                      width: "100%",
-                      height: 45,
-                    }
-                  ]}
-                />
+          animationType="slide"
+          transparent={true}
+          visible={showModal}
+          onRequestClose={() => setShowModal(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Change your password</Text>
+              <TextInput
+                onChangeText={(text) => setCurrentPassword(text)}
+                placeholderTextColor={"#626262"}
+                placeholder={"Current password"}
+                style={[
+                  {
+                    borderBottomColor: "gray",
+                            borderBottomWidth: 0.5,
+                            height: 35,
+                            width: "100%",
+                            backgroundColor: "#fff",
+                            color: "black",
+                            marginTop: 40,
+                            paddingHorizontal: 15,
+                            marginBottom: 20,
+                  },
+                ]}
+              />
 
-                <TextInput
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  onChangeText={(text) => setNewPassword(text)}
-                  placeholderTextColor={"#626262"}
-                  placeholder={"New password"}
-                  style={[
-                    {
-                      fontSize: 14,
-                      padding: 8,
-                      backgroundColor: "#f1f4ff",
-                      borderRadius: 10,
-                      marginTop: 15,
-                      width: "100%",
-                      height: 45,
-                    }
-                  ]}
-                />
+              <TextInput
+                onChangeText={(text) => setNewPassword(text)}
+                placeholderTextColor={"#626262"}
+                placeholder={"New password"}
+                style={[
+                  {
+                    borderBottomColor: "gray",
+                            borderBottomWidth: 0.5,
+                            height: 35,
+                            width: "100%",
+                            backgroundColor: "#fff",
+                            color: "black",
+                            marginTop: 40,
+                            paddingHorizontal: 15,
+                            marginBottom: 20,
+                  },
+                ]}
+              />
 
-                <TextInput
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  onChangeText={(text) => setConfirmPassword(text)}
-                  placeholderTextColor={"#626262"}
-                  placeholder={"Confirm password"}
-                  style={[
-                    {
-                      fontSize: 14,
-                      padding: 8,
-                      backgroundColor: "#f1f4ff",
-                      borderRadius: 10,
-                      marginTop: 15,
-                      marginBottom: 35,
-                      width: "100%",
-                      height: 45,
-                    },
-                    focused && {
-                      borderWidth: 2,
-                      borderColor: "#626262",
-                      shadowOffset: { width: 4, height: 10 },
-                      shadowColor: "#626262",
-                      shadowOpacity: 0.2,
-                      shadowRadius: 10,
-                    },
-                  ]}
-                />
-                <View style={styles.modalButtonContainer}>
-                  <TouchableOpacity
-                    style={[styles.modalButton, styles.cancelButton]}
-                    onPress={() => setShowModal(false)}
-                  >
-                    <Text style={styles.modalButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.modalButton, styles.confirmButton]}
-                    onPress={() => {
-                      changePassword()
-                    }}
-                  >
-                    <Text style={styles.modalButtonText}>
+              <TextInput
+                onChangeText={(text) => setConfirmPassword(text)}
+                placeholderTextColor={"#626262"}
+                placeholder={"Confirm password"}
+                style={[
+                  {
+                    borderBottomColor: "gray",
+                            borderBottomWidth: 0.5,
+                            height: 35,
+                            width: "100%",
+                            backgroundColor: "#fff",
+                            color: "black",
+                            marginTop: 40,
+                            paddingHorizontal: 15,
+                            marginBottom: 20,
+                  },
+                  focused && {
+                    borderWidth: 2,
+                    borderColor: "#626262",
+                    shadowOffset: { width: 4, height: 10 },
+                    shadowColor: "#626262",
+                    shadowOpacity: 0.2,
+                    shadowRadius: 10,
+                  },
+                ]}
+              />
+              <View style={styles.modalButtonContainer}>
+                <TouchableOpacity
+                  style={[styles.modalButton,{backgroundColor:'white',color:'#2FAB4F'}]}
+                  onPress={() => setShowModal(false)}
+                >
+                  <Text style={[styles.modalButtonText,{color:'#2FAB4F'}]}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.confirmButton]}
+                  onPress={() => {
+                    changePassword();
+                  }}
+                >
+                  <Text style={styles.modalButtonText}>
                     {loading ? (
-                    <ActivityIndicator size={"small"} color="white" />
-                  ) : (
-                    "Confirm"
-                  )}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                      <ActivityIndicator size={"small"} color="white" />
+                    ) : (
+                      "Confirm"
+                    )}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
-          </Modal>
-
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={showProfileModal}
-            onRequestClose={() => setShowProfileModal(false)}
-          >
-            <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-            <View style={{ alignItems: "center", justifyContent: "center" }}>
-            <Image
-              source={imageUrl?{uri:imageUrl}:profile?.profile_image_url?{uri:`${baseURL}/${profile?.profile_image_url}?${new Date()}`}:require("../../images/user1.png")}
-              resizeMode="contain"
-              style={{
-                backgroundColor: "white",
-                width: 100, // Adjust the width as per your design
-                height: 100, // Adjust the height as per your design
-                borderRadius: 50, // Set the borderRadius to half of width/height to create a circle
-                overflow: "hidden", // Clip the image to the rounded shape
-              }}
-            />
-            <TouchableOpacity style={{width:"50%",alignItems:"center",padding:10,borderRadius:10,backgroundColor:'#626262',marginBottom:20}} onPress={()=>pickProfileImage()}>
-             <Text style={{color:'white'}}>Select Picture</Text>
-            </TouchableOpacity>
           </View>
-            <View style={styles.modalButtonContainer}>
-                  <TouchableOpacity
-                    style={[styles.modalButton, styles.cancelButton]}
-                    onPress={() => setShowProfileModal(false)}
-                  >
-                    <Text style={styles.modalButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.modalButton, styles.confirmButton]}
-                    onPress={() => {
-                      handleSubmit()
+        </Modal>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={showOtpModal}
+          onRequestClose={() => setShowOtpModal(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={[styles.modalContent, { width: "90%" }]}>
+              <View
+                style={{
+                  backgroundColor: "white",
+                  width: "100%",
+                  alignSelf: "center",
+                }}
+              >
+                <View>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
                     }}
                   >
-                    <Text style={styles.modalButtonText}>
-                    {loading ? (
-                    <ActivityIndicator size={"small"} color="white" />
-                  ) : (
-                    "Confirm"
-                  )}
+                    <Text
+                      style={{
+                        fontSize: 25,
+                        color: "#000",
+                        marginLeft: "5%",
+                      }}
+                    >
+                      User Verification
                     </Text>
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setShowOtpModal(false)}
+                      style={{
+                        width: 30,
+                        height: 30,
+                        marginBottom: 10,
+                        borderRadius: 15,
+                        alignSelf: "flex-end",
+                        backgroundColor: "white",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        ...styles.shadow,
+                      }}
+                    >
+                      <Ionicons name="close" size={20} />
+                    </TouchableOpacity>
+                  </View>
+
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      marginLeft: "5%",
+                      marginTop: 15,
+                    }}
+                  >
+                    Enter the OTP sent on your phone
+                  </Text>
                 </View>
-               
+
+                <View
+                  style={{
+                    marginVertical: 10 * 2,
+                    alignItems: "center",
+                    flexDirection: "row",
+                    justifyContent: "space-evenly",
+                  }}
+                >
+                  {otp.map((digit, index) => (
+                    <TextInput
+                      key={index}
+                      value={digit}
+                      onChangeText={(text) => handleChange(text, index)}
+                      onKeyPress={(e) => handleKeyPress(e, index)}
+                      style={styles.input2}
+                      maxLength={1}
+                      keyboardType="numeric"
+                      ref={(ref) => (inputs.current[index] = ref)}
+                    />
+                  ))}
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => verify()}
+                  style={{
+                    backgroundColor: "#2FAB4F",
+                    marginVertical: 10 * 4,
+                    borderRadius: 20,
+                    height: 40,
+                    alignSelf: "center",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "50%",
+                    ...styles.shadow,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#fff",
+                      fontSize: 16,
+                    }}
+                  >
+                    {loading ? (
+                      <ActivityIndicator size={"small"} color="white" />
+                    ) : (
+                      "verify"
+                    )}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
+          </View>
+        </Modal>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={showProfileModal}
+          onRequestClose={() => setShowProfileModal(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <KeyboardAvoidingView
+                style={{}}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                keyboardVerticalOffset={Platform.OS === "ios" ? 150 : 0} // Adjust offset as needed
+              >
+                <ScrollView
+                  style={{ height: "85%" }}
+                  showsVerticalScrollIndicator={false}
+                >
+                  <View
+                    style={{ alignItems: "center", justifyContent: "center" }}
+                  >
+                    <Image
+                      source={
+                        imageUrl
+                          ? { uri: imageUrl }
+                          : profile?.profile_image
+                          ? {
+                              uri: `${
+                                profile?.profile_image
+                              }?${new Date()}`,
+                            }
+                          : require("../../images/user1.png")
+                      }
+                      resizeMode="contain"
+                      style={{
+                        backgroundColor: "white",
+                        width: 100,
+                        height: 100,
+                        borderRadius: 50,
+                        overflow: "hidden",
+                      }}
+                    />
+                    <TouchableOpacity onPress={() => pickProfileImage()}>
+                      <Text style={{ color: "#669bbc" }}>Select Picture</Text>
+                    </TouchableOpacity>
+                  </View>
+                  {profile?.user_type === "patient" && (
+                    <>
+                      <Text style={{ marginTop: 15, alignSelf: "flex-start" }}>
+                        First Name
+                      </Text>
+                      <TextInput
+                        placeholderTextColor={"#626262"}
+                        placeholder="First name"
+                        value={firstName}
+                        onChangeText={(text) => setFirstName(text)}
+                        style={styles.input}
+                      />
+                      <Text style={{ marginTop: 15, alignSelf: "flex-start" }}>
+                        Last Name
+                      </Text>
+                      <TextInput
+                        placeholderTextColor={"#626262"}
+                        placeholder="Last name"
+                        value={lastName}
+                        onChangeText={(text) => setLastName(text)}
+                        style={styles.input}
+                      />
+                    </>
+                  )}
+
+                  <Text style={{ marginTop: 15, alignSelf: "flex-start" }}>
+                    Email
+                  </Text>
+                  <TextInput
+                    placeholderTextColor={"#626262"}
+                    onChangeText={(text) => setEmail(text)}
+                    placeholder="Email"
+                    value={email}
+                    style={styles.input}
+                  />
+                  <Text style={{ marginTop: 15, alignSelf: "flex-start" }}>
+                    Phone Number
+                  </Text>
+                  <TextInput
+                    keyboardType="phone-pad"
+                    placeholderTextColor={"#626262"}
+                    onChangeText={(text) => setPhone(text)}
+                    value={phone}
+                    placeholder="Phone number"
+                    style={styles.input}
+                  />
+                </ScrollView>
+              </KeyboardAvoidingView>
+              <View style={styles.modalButtonContainer}>
+                <TouchableOpacity
+                  style={[styles.modalButton,{backgroundColor:'white'}]}
+                  onPress={() => setShowProfileModal(false)}
+                >
+                  <Text style={[styles.modalButtonText,{color:'#2FAB4F'}]}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.confirmButton]}
+                  onPress={() => {
+                    handleSubmit();
+                  }}
+                >
+                  <Text style={styles.modalButtonText}>
+                    {loading ? (
+                      <ActivityIndicator size={"small"} color="white" />
+                    ) : (
+                      "Confirm"
+                    )}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </Modal>
+          </View>
+        </Modal>
       </ScrollView>
     </View>
   );
@@ -652,6 +917,26 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+  },
+  input: {
+    fontSize: 14,
+    paddingLeft: 20,
+    backgroundColor: "#fff",
+    borderRadius: 5,
+    marginVertical: 5,
+    width: "99%",
+    height: 45,
+    borderWidth: 0.2,
+    borderColor: "gray",
+  },
+  input2: {
+    width: width / 8,
+    height: width / 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "gray",
+    textAlign: "center",
+    fontSize: 20,
   },
   shadow: {
     shadowColor: "#000",
@@ -673,6 +958,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   modalButtonContainer: {
+    marginTop: 20,
     flexDirection: "row",
     justifyContent: "space-between",
   },
@@ -688,10 +974,11 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     elevation: 5,
+    maxHeight: "75%",
     width: "80%",
   },
   modalTitle: {
-    textAlign:'center',
+    textAlign: "center",
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 10,
@@ -703,9 +990,9 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.7)",
   },
   cancelButton: {
-    backgroundColor: "#178838",
+    backgroundColor: "#a4161a",
   },
   confirmButton: {
-    backgroundColor: "#38a169",
+    backgroundColor: "#2FAB4F",
   },
 });

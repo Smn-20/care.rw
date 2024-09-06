@@ -92,7 +92,7 @@ const Subscriptions = ({ navigation, index }) => {
     return (
       <View
         style={{
-          backgroundColor: "#F5F4EC",
+          backgroundColor: "#F8FAFC",
           paddingTop: 15,
           paddingRight: 10,
           alignSelf: "center",

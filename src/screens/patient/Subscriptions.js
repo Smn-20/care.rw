@@ -12,7 +12,7 @@ import {
 import { baseURL } from "../../BaseUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 
 const windowHeight = Dimensions.get("screen").height;
@@ -53,7 +53,6 @@ const Subscriptions = ({ navigation, index }) => {
           backgroundColor: "#F5F4EC",
           paddingTop: 15,
           paddingBottom: 5,
-          paddingRight: 10,
           alignSelf: "center",
           borderRadius: 10,
           marginTop: 10,
@@ -142,7 +141,9 @@ const Subscriptions = ({ navigation, index }) => {
                 Reg.No: {item.registration_number}
               </Text>
             </View>
-            {item.remaining_days>0&&(
+          </View>
+        </View>
+        {item.remaining_days>0&&(
                 <TouchableOpacity
                 onPress={() => {
                     navigation.navigate("ChatRoom", {
@@ -153,18 +154,20 @@ const Subscriptions = ({ navigation, index }) => {
                 }}
                 style={{
                   flexDirection: "row",
-                  backgroundColor: "#178838",
-                  height: 25,
+                  backgroundColor: "white",
+                  height: 35,
+                  alignSelf: "center",
                   alignItems: "center",
                   justifyContent: "center",
-                  borderRadius: 15,
+                  borderRadius: 17.5,
                   marginTop: 5,
-                  width: "40%",
+                  marginBottom:5,
+                  width: "90%",
                 }}
               >
-                    <Ionicons
-                      color={"white"}
-                      name="chatbubbles-outline"
+                    <MaterialCommunityIcons
+                      color={"#178838"}
+                      name="chat-processing"
                       size={14}
                     />
                     <Text
@@ -172,15 +175,13 @@ const Subscriptions = ({ navigation, index }) => {
                         marginHorizontal: 5,
                         fontSize: 11,
                         fontWeight: "700",
-                        color: "#fff",
+                        color: "#178838",
                       }}
                     >
                       Chat
                     </Text>
               </TouchableOpacity>
             )}
-          </View>
-        </View>
       </View>
     );
   };

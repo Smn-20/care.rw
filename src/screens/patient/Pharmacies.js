@@ -6,6 +6,7 @@ import {
   FlatList,
   Dimensions,
   TouchableOpacity,
+  Image,
   RefreshControl,
 } from "react-native";
 import { baseURL } from "../../BaseUrl";
@@ -55,14 +56,19 @@ const Pharmacies = ({ navigation, index }) => {
           style={{
             flexDirection: "row",
             alignItems: "center",
-            backgroundColor: "#F5F4EC",
+            backgroundColor: "#F1F5F9",
             width: "90%",
             paddingHorizontal: 10,
             height: windowHeight / 15,
             borderRadius: 20,
           }}
         >
-          <View style={{ width: "80%" }}>
+          <View  style={{justifyContent:'center',alignItems:'center',width:'15%'}}>
+            <View style={{width:windowWidth/9,height:windowWidth/9,borderRadius:windowWidth/18,backgroundColor:'#CBD5E1',justifyContent:'center',alignItems:'center'}}>
+            <Image source={require('../../images/pharmacy2.png')} style={{width:windowWidth/14,height:windowWidth/14}} resizeMode="contain"/>
+            </View>
+            </View>
+          <View style={{ width: "65%" }}>
             <Text
               style={{
                 color: "#000",

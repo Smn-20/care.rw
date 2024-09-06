@@ -15,14 +15,21 @@ import {
 } from "react-native";
 // import Banner from '../../images/homeBanner.svg';
 import axios from "axios";
-import { AntDesign, Entypo, Feather, FontAwesome, FontAwesome5, Fontisto, Ionicons } from "@expo/vector-icons";
+import {
+  AntDesign,
+  Entypo,
+  Feather,
+  FontAwesome,
+  FontAwesome5,
+  Fontisto,
+  Ionicons,
+} from "@expo/vector-icons";
 import { baseURL } from "../../BaseUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Dropdown from "../shared/Dropdown";
 import BottomNavigator from "../../components/BottomNavigator";
-import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
-
-
+import { connect } from "react-redux";
+import { TabView, SceneMap, TabBar } from "react-native-tab-view";
 
 import * as Location from "expo-location";
 import Medicines from "./Medicines";
@@ -32,62 +39,59 @@ import Doctors from "./Doctors";
 
 const windowHeight = Dimensions.get("window").height;
 const windowWidth = Dimensions.get("window").width;
-const Home = ({ navigation }) => {
+const Home = ({ navigation,cart }) => {
   const [user, setUser] = useState();
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
   const [index, setIndex] = React.useState(0);
   const [routes] = React.useState([
-    { key: 'first', title: 'Medicine' },
-    { key: 'second', title: 'Pharmacy' },
-    { key: 'third', title: 'Clinic' },
-    { key: 'fourth', title: 'Physician' },
+    { key: "first", title: "Medicine" },
+    { key: "second", title: "Pharmacy" },
+    { key: "third", title: "Clinic" },
+    { key: "fourth", title: "Physician" },
   ]);
 
   const options = ["Option 1", "Option 2", "Option 3"];
 
   const MedicineRoute = () => (
-    <Medicines index={index} navigation={navigation}/>
+    <Medicines index={index} navigation={navigation} />
   );
-  
+
   const PharmacyRoute = () => (
-    <Pharmacies index={index} navigation={navigation}/>
+    <Pharmacies index={index} navigation={navigation} />
   );
-  
-  const ClinicRoute = () => (
-    <Hospitals index={index} navigation={navigation}/>
-  );
-  
+
+  const ClinicRoute = () => <Hospitals index={index} navigation={navigation} />;
+
   const PhysicianRoute = () => (
-    <Doctors index={index} navigation={navigation}/>
+    <Doctors index={index} navigation={navigation} />
   );
-  
+
   const renderScene = SceneMap({
     first: MedicineRoute,
     second: PharmacyRoute,
     third: ClinicRoute,
-    fourth: PhysicianRoute
+    fourth: PhysicianRoute,
   });
 
   const getTab = (index) => {
     switch (index) {
       case 0:
-        return "Medicine"
+        return "Medicine";
 
       case 1:
-        return "Pharmacy"
+        return "Pharmacy";
 
       case 2:
-        return "Clinic"
+        return "Clinic";
 
       case 3:
-        return "Physician"
-    
+        return "Physician";
+
       default:
         break;
     }
-  }
-
+  };
 
   //   const [initialRoute, setInitialRoute] = useState('PatientHome');
 
@@ -109,9 +113,6 @@ const Home = ({ navigation }) => {
     setIsDropdownVisible(false);
   };
 
-
-
-
   useEffect(() => {
     getUser();
     const focusHandler = navigation.addListener("focus", () => {
@@ -119,8 +120,6 @@ const Home = ({ navigation }) => {
     });
     return focusHandler;
   }, [navigation]);
-
-
 
   // const saveDeviceToken = async (profile, deviceToken) => {
   //   const token = await AsyncStorage.getItem("token");
@@ -154,9 +153,6 @@ const Home = ({ navigation }) => {
   //     });
   // };
 
-
-
-
   return (
     <View styles={styles.container}>
       <StatusBar
@@ -167,7 +163,7 @@ const Home = ({ navigation }) => {
       <View
         style={{
           width: windowWidth,
-          backgroundColor: "#FBF9F1",
+          backgroundColor: "#fff",
           height: windowHeight / 8,
           flexDirection: "row",
         }}
@@ -175,14 +171,18 @@ const Home = ({ navigation }) => {
         <View
           underlayColor="transparent"
           style={{
-            width: windowWidth-135,
+            width: windowWidth - 135,
             alignItems: "flex-start",
             justifyContent: "center",
             marginTop: "8%",
-            paddingLeft:25
+            paddingLeft: 25,
           }}
         >
-          <Image source={require('../../images/logo.png')} style={{width:100}} resizeMode='contain'/>
+          <Image
+            source={require("../../images/logo.png")}
+            style={{ width: 100 }}
+            resizeMode="contain"
+          />
         </View>
         <View
           style={{
@@ -207,7 +207,7 @@ const Home = ({ navigation }) => {
             alignItems: "center",
             justifyContent: "center",
             flexDirection: "row",
-            marginTop: "8%"
+            marginTop: "8%",
           }}
         >
           <TouchableOpacity
@@ -215,7 +215,14 @@ const Home = ({ navigation }) => {
               navigation.navigate("Cart");
             }}
           >
-            <AntDesign name="shoppingcart" size={24}/>
+            {cart.length>0&&(
+            <View style={{width:15,height:15,borderRadius:7.5,backgroundColor:'red',marginLeft:17,marginBottom:-12,justifyContent:'center',alignItems:'center',zIndex:1}}>
+              {cart.length<100&&(
+                <Text style={{color:'white',fontSize:10}}>{cart.length}</Text>
+              )}
+            </View>
+            )}
+            <AntDesign name="shoppingcart" size={24} />
           </TouchableOpacity>
         </View>
         <View
@@ -224,21 +231,25 @@ const Home = ({ navigation }) => {
             alignItems: "center",
             justifyContent: "center",
             flexDirection: "row",
-            marginTop: "8%"
+            marginTop: "8%",
           }}
         >
           <TouchableOpacity
             onPress={() => {
-              toggleDropdown()
+              toggleDropdown();
             }}
           >
-            <Feather name="menu" size={20}/>
+            <Feather name="menu" size={20} />
           </TouchableOpacity>
         </View>
       </View>
 
-      <View style={{ height: ((windowHeight * 7) / 8)-80,backgroundColor:'#FBF9F1' }}>
-
+      <View
+        style={{
+          height: (windowHeight * 7) / 8 - 80,
+          backgroundColor: "#fff",
+        }}
+      >
         <TouchableOpacity
           onPress={() => {
             navigation.navigate("Map");
@@ -266,50 +277,81 @@ const Home = ({ navigation }) => {
           />
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={()=>navigation.navigate('SearchPage',{title:getTab(index)})} style={styles.searchBox}>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate("SearchPage", { title: getTab(index) })
+          }
+          style={styles.searchBox}
+        >
           <View style={{ justifyContent: "center", marginHorizontal: 10 }}>
             <Ionicons name="search" size={24} color="gray" />
           </View>
-          <Text style={{color:"#666666"}}>Search {getTab(index)}</Text>
+          <View style={{flexDirection:'row',flexGrow:1,justifyContent:'space-between',paddingRight:20}}>
+            <Text style={{ color: "#666666", fontSize:18}}>Search</Text>
+            <Text style={{ color: "#CBD5E1", fontSize:18 }}>{getTab(index)}</Text>
+          </View>
         </TouchableOpacity>
 
-        <View style={{width:"100%",backgroundColor:"white",height:windowHeight-(windowHeight*13/40+130)}}>
-        <TabView
-      navigationState={{ index, routes }}
-      renderScene={renderScene}
-      onIndexChange={setIndex}
-      renderTabBar={props => {
-        return (
-          <TabBar
-            {...props}
-            renderLabel={({ focused, route }) => {
+        <View
+          style={{
+            width: "100%",
+            backgroundColor: "white",
+            height: windowHeight - ((windowHeight * 13) / 40 + 130),
+          }}
+        >
+          <TabView
+            navigationState={{ index, routes }}
+            renderScene={renderScene}
+            onIndexChange={setIndex}
+            renderTabBar={(props) => {
               return (
-                <Text style={{color:focused?'#178838':'black',fontSize:14,fontWeight:'500'}}>{route.title}</Text>
+                <TabBar
+                  {...props}
+                  renderLabel={({ focused, route }) => {
+                    return (
+                      <Text
+                        style={{
+                          color: focused ? "#178838" : "black",
+                          fontSize: 14,
+                          fontWeight: "500",
+                        }}
+                      >
+                        {route.title}
+                      </Text>
+                    );
+                  }}
+                  indicatorStyle={styles.indicatorStyle}
+                  style={styles.tabBar}
+                />
               );
             }}
-            indicatorStyle={styles.indicatorStyle}
-            style={styles.tabBar}
+            initialLayout={{ width: windowWidth }}
           />
-        );
-      }}
-      initialLayout={{ width: windowWidth }}
-    />
         </View>
-
       </View>
-      <BottomNavigator navigation={navigation} userRole={user?.user_type}/>
+      <BottomNavigator navigation={navigation} userRole={user?.user_type} />
       <Dropdown
         navigation={navigation}
         isVisible={isDropdownVisible}
         onClose={closeDropdown}
-        names={user?.first_name? user?.first_name+" "+user?.last_name:user?.names}
+        names={
+          user?.first_name
+            ? user?.first_name + " " + user?.last_name
+            : user?.names
+        }
         phone={user?.phone}
       />
     </View>
   );
 };
 
-export default Home;
+const mapStateToProps = (state) => {
+  return {
+    cart: state.cart.cart,
+  };
+};
+
+export default connect(mapStateToProps, null)(Home);
 
 const styles = StyleSheet.create({
   container: {
@@ -327,11 +369,12 @@ const styles = StyleSheet.create({
   },
   searchBox: {
     flexDirection: "row",
-    backgroundColor: "#DEDBCE",
-    height: 40,
+    backgroundColor: "#F1F5F9",
+    height: 60,
+    paddingHorizontal:10,
     marginTop: 10,
     width: "90%",
-    borderRadius: 20,
+    borderRadius: 30,
     alignSelf: "center",
     alignItems: "center",
   },
@@ -361,7 +404,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderRadius: 30,
     elevation: 5,
-    width: "90%"
+    width: "90%",
   },
   modalTitle: {
     fontSize: 16,
@@ -374,13 +417,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.7)",
   },
-  tabBar:{
-    backgroundColor:"#FBF9F1"
+  tabBar: {
+    backgroundColor: "#fff",
   },
-  indicatorStyle:{
-    backgroundColor:'#178838',
-    height:3,
-    borderTopLeftRadius:2,
-    borderTopRightRadius:2,
-  }
+  indicatorStyle: {
+    backgroundColor: "#178838",
+    height: 3,
+    borderTopLeftRadius: 2,
+    borderTopRightRadius: 2,
+  },
 });

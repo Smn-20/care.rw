@@ -10,15 +10,15 @@ import {
   ActivityIndicator,
   StatusBar,
   TextInput,
-  Alert
+  Alert,
 } from "react-native";
 import { connect } from "react-redux";
 import { addToCart, decreaseQty } from "../../redux/cart/cart-actions";
-import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
+import { AntDesign, Feather, Entypo } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RadioButton } from "react-native-paper";
 import { baseURL } from "../../BaseUrl";
-import axios from 'axios';
+import axios from "axios";
 import BottomNavigator from "../../components/BottomNavigator";
 
 const windowHeight = Dimensions.get("screen").height;
@@ -35,6 +35,7 @@ const MedicineDetails = ({
   const [type, setType] = useState("solid");
   const [loading, setLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [isVisible2, setIsVisible2] = useState(false);
   const [phone, setPhone] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [user, setUser] = useState();
@@ -42,103 +43,108 @@ const MedicineDetails = ({
   const getUser = async () => {
     const user = await AsyncStorage.getItem("user");
     const userObj = JSON.parse(user);
-    setUser(userObj)
-  }
+    setUser(userObj);
+  };
 
   useEffect(() => {
-    getUser()
+    getUser();
     console.log(cart);
   }, []);
 
   const add = () => {
-    setQuantity(quantity+1)
-  }
+    setQuantity(quantity + 1);
+  };
 
   const remove = () => {
-    if(quantity>1){
-      setQuantity(quantity-1)
+    if (quantity > 1) {
+      setQuantity(quantity - 1);
     }
-  }
+  };
 
   const modalHandler = () => {
     setIsVisible(!isVisible);
+    setLoading(false);
+  };
+
+  const modalHandler2 = () => {
+    setIsVisible2(!isVisible2);
   };
 
   const showAlert = () => {
-    Alert.alert(
-      "",
-      "Proceed to Checkout or Add Medication",
-      [
-        { text: "Proceed to Purchase", onPress: () => navigation.navigate("Cart"),style:"cancel" },
-        {
-          text: "Add Medication",
-          onPress: () => navigation.navigate("SearchPage",{title:'Medicine'}),
-          style: "cancel",
-        },
-       
-      ]
-    );
-  }
+    Alert.alert("", "Proceed to Checkout or Add Medication", [
+      {
+        text: "Proceed to Purchase",
+        onPress: () => navigation.navigate("Cart"),
+        style: "cancel",
+      },
+      {
+        text: "Add Medication",
+        onPress: () => navigation.navigate("SearchPage", { title: "Medicine" }),
+        style: "cancel",
+      },
+    ]);
+  };
 
-  const checkInsufficientBalance = async (referenceId) => {
-      const token = await AsyncStorage.getItem("token");
-      axios
-        .get(`${baseURL}/api/payment-status?type=booking&reference_id=${referenceId}`,{headers:{"Content-Type": "application/json","Authorization": `Bearer ${token}`}})
-        .then((res) => {
-          console.log(res.data)
-          // if (res.data.success==true) {
-            
-          // } else {
 
-          // }
-        })
-        .catch((err) => {
-          console.log(err);
-      });
-  }
 
-  const book = async () => {
-    setLoading(true)
-    const my_token = await AsyncStorage.getItem('token')
-    const user = await AsyncStorage.getItem('user')
-    const userObj = JSON.parse(user)
-
-    axios.defaults.headers = {
-        "Content-Type": "application/json",
-        Authorization: `Token ${my_token}`,
-    };
-
-    const postObj = JSON.stringify({
-      branch_id:route.params.id,
-      user_id:userObj.id,
-      quantity:quantity,
-      medication_id:route.params.medication_id,
-      phone_number:phone
-  });
-    console.log(postObj);
-
-      axios
-      .post(`${baseURL}/api/book-medication`, postObj)
-      .then((res) => {
-        if(res.data.status){
-            // setTimeout(()=>{
-            //   checkInsufficientBalance(res.data.data.referenceId)
-            // },3000)
-            setLoading(false)
-            alert('Check your phone to confirm payment or Dial *182*7*1#')
-            setIsVisible(false)
-        }
-        else{
-          setLoading(false)
-          alert('something went wrong!')
-          console.log(res.data)
-          setIsVisible(false)
+  const checkInsufficientBalance = (referenceId) => {
+    console.log(referenceId);
+    axios
+      .get(`${baseURL}/api/booking/payment-details/${referenceId}`, {
+        headers: { "Content-Type": "application/json" },
+      })
+      .then(async (res) => {
+        if(res.data?.data?.response_code==="600"){
+          alert("Insufficient balance!")
         }
       })
       .catch((err) => {
-        setIsVisible(false)
-        alert('something went wrong!')
-        setLoading(false)
+        console.log(err);
+      });
+  };
+
+  const book = async () => {
+    setLoading(true);
+    const my_token = await AsyncStorage.getItem("token");
+    const user = await AsyncStorage.getItem("user");
+    const userObj = JSON.parse(user);
+
+    axios.defaults.headers = {
+      "Content-Type": "application/json",
+      Authorization: `Token ${my_token}`,
+    };
+
+    const postObj = JSON.stringify({
+      branch_id: route.params.id,
+      user_id: userObj.id,
+      quantity: quantity,
+      medication_id: route.params.medication_id,
+      phone_number: phone,
+    });
+    console.log(postObj);
+
+    axios
+      .post(`${baseURL}/api/book-medication`, postObj)
+      .then((res) => {
+        if (res.data.status) {
+          console.log(res.data)
+          setTimeout(()=>{
+            checkInsufficientBalance(res.data.reference_id)
+          },7000)
+          setLoading(false);
+          alert("Check your phone to confirm payment or Dial *182*7*1#");
+          setIsVisible(false);
+        } else {
+          setLoading(false);
+          alert("something went wrong!");
+          console.log(res.data);
+          setIsVisible(false);
+        }
+      })
+      .catch((err) => {
+        setIsVisible(false);
+        alert("something went wrong!");
+        setLoading(false);
         console.log(err);
       });
   };
@@ -151,7 +157,7 @@ const MedicineDetails = ({
           height: 100,
           borderBottomWidth: 0.2,
           borderBottomColor: "gray",
-          backgroundColor: "#EAE8E0",
+          backgroundColor: "#F1F5F9",
           paddingTop: 60,
         }}
       >
@@ -208,7 +214,7 @@ const MedicineDetails = ({
         showsVerticalScrollIndicator={false}
         style={{
           height: windowHeight - 100,
-          backgroundColor: "#EAE8E0",
+          backgroundColor: "#fff",
           padding: 10,
         }}
       >
@@ -219,60 +225,51 @@ const MedicineDetails = ({
             borderRadius: 20,
           }}
         >
-
-          <View style={{width:'100%',flexDirection:'row'}}>
-          <View style={{width:'50%'}}>
-            <Text
-              style={{
-                fontSize: 14,
-                color: "black",
-                marginBottom: 5,
-                fontWeight: "bold",
-              }}
-            >
-              {route.params.medication_name}
-            </Text>
+          <View style={{ width: "100%", flexDirection: "row" }}>
+            <View style={{ width: "100%" }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: "black",
+                  marginBottom: 5,
+                  fontWeight: "bold",
+                }}
+              >
+                {route.params.medication_name}
+              </Text>
+            </View>
           </View>
-          <View style={{width:'50%',}}>
-          <Text style={{ fontWeight: "bold",textAlign:'right',fontSize:13 }}>
-            Price: {parseInt(route.params.unitPrice)*quantity} Rwf
-          </Text>
-          </View>
-          </View>
-          
 
-          
-
-          <View
-            style={{ marginTop:10, justifyContent: "space-around" }}
-          >
-
+          <View style={{ marginTop: 10, justifyContent: "space-around" }}>
             <View style={{ width: "50%" }}>
               <Text>Quantity</Text>
               <View
                 style={{
-                  height: 30,
+                  height: 40,
                   flexDirection: "row",
                   width: "90%",
                   marginTop: 10,
-                  borderRadius: 10,
+                  paddingHorizontal:1,
+                  borderRadius: 5,
                   borderWidth: 0.2,
                   borderColor: "black",
                 }}
               >
                 <TouchableOpacity
-                  onPress={()=>remove()}
+                  onPress={() => remove()}
                   style={{
                     justifyContent: "center",
                     alignItems: "center",
                     height: "100%",
                     width: "25%",
-                    backgroundColor: "#EBF0DC",
-                    borderTopLeftRadius: 10,
-                    borderBottomLeftRadius: 10,
+                    backgroundColor: "#fff",
+                    borderRightColor: "black",
+                    borderRightWidth: 0.5,
+                    borderTopLeftRadius: 5,
+                    borderBottomLeftRadius: 5,
                   }}
                 >
-                  <Feather name="chevron-left" size={20} />
+                  <Feather name="minus" size={20} />
                 </TouchableOpacity>
                 <View
                   style={{
@@ -285,21 +282,32 @@ const MedicineDetails = ({
                   <Text>{quantity}</Text>
                 </View>
                 <TouchableOpacity
-                  onPress={()=>add()}
+                  onPress={() => add()}
                   style={{
                     justifyContent: "center",
                     alignItems: "center",
                     height: "100%",
                     width: "25%",
-                    backgroundColor: "#EBF0DC",
-                    borderTopRightRadius: 10,
-                    borderBottomRightRadius: 10,
+                    backgroundColor: "#fff",
+                    borderLeftColor: "black",
+                    borderLeftWidth: 0.5,
+                    borderTopRightRadius: 5,
+                    borderBottomRightRadius: 5,
                   }}
                 >
-                  <Feather name="chevron-right" size={20} />
+                  <Feather name="plus" size={20} />
                 </TouchableOpacity>
               </View>
             </View>
+          </View>
+
+          <View style={{ width: "100%", marginTop: 20 }}>
+            <Text style={{ fontWeight: "normal", fontSize: 14 }}>
+              Price:{" "}
+              <Text style={{ fontWeight: "bold", fontSize: 16 }}>
+                {parseInt(route.params.unitPrice) * quantity} Rwf
+              </Text>
+            </Text>
           </View>
 
           <View
@@ -310,7 +318,7 @@ const MedicineDetails = ({
             }}
           >
             <TouchableOpacity
-              onPress={() =>{
+              onPress={() => {
                 addToCart({
                   id: route.params.medication_id,
                   name: route.params.medication_name,
@@ -318,34 +326,36 @@ const MedicineDetails = ({
                   branch: route.params.branch,
                   price: route.params.unitPrice,
                   qty: quantity,
-                })
-                showAlert()
+                });
+                setIsVisible2(true);
               }}
               style={{
                 justifyContent: "center",
                 alignItems: "center",
                 height: 40,
-                width: "40%",
-                backgroundColor: "#EBF0DC",
+                width: "45%",
+                borderWidth: 0.5,
+                borderColor: "#1E293B",
+                backgroundColor: "#fff",
                 borderRadius: 20,
               }}
             >
-              <Text style={{ color: "#4C6707", fontWeight: "500" }}>
+              <Text style={{ color: "#1E293B", fontWeight: "500" }}>
                 Add to Cart
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={()=>setIsVisible(true)}
+              onPress={() => setIsVisible(true)}
               style={{
                 justifyContent: "center",
                 alignItems: "center",
                 height: 40,
-                width: "40%",
-                backgroundColor: "#D4E660",
+                width: "45%",
+                backgroundColor: "#1E293B",
                 borderRadius: 20,
               }}
             >
-              <Text style={{ fontWeight: "500" }}>Book</Text>
+              <Text style={{ fontWeight: "500", color: "white" }}>Book</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -370,34 +380,55 @@ const MedicineDetails = ({
               style={{
                 minHeight: 250,
                 width: "90%",
-                backgroundColor: "#EAE8E0",
+                backgroundColor: "#fff",
                 borderRadius: 40,
-                paddingBottom:20
+                paddingBottom: 20,
               }}
             >
-              <View style={{ justifyContent: "center", alignItems: "center" }}>
+              <View style={{flexDirection:'row',marginTop:30,marginLeft:'5%'}}>
+                <Entypo name="cog" size={24} color="black" />
                 <Text
-                  style={{
-                    marginTop: 30,
-                    fontSize: 18,
-                    fontWeight: "bold",
-                    color: "black",
-                  }}
+                style={{
+                  fontSize: 18,
+                  marginLeft:10,
+                  fontWeight: "bold",
+                  color: "black",
+                }}
                 >
-                  Enter momo number to book
+                  Confirm booking
                 </Text>
-                <Text style={{alignSelf:'flex-start',marginLeft:'5%',marginTop:10}}>Amount to pay (1% of the total amount): {(route.params.unitPrice)*quantity/100} Rwf</Text>
+              </View>
+              
+              <Text
+                style={{
+                  alignSelf: "flex-start",
+                  marginLeft: "5%",
+                  marginTop: 20,
+                }}
+              >
+                Fee (1%): {(route.params.unitPrice * quantity) / 100} Rwf
+              </Text>
+              <Text
+                style={{
+                  marginTop: 15,
+                  marginLeft: "5%",
+                  fontSize: 14,
+                  color: "gray",
+                }}
+              >
+                Add your phone number to book
+              </Text>
+              <View style={{ justifyContent: "center", alignItems: "center" }}>
                 <TextInput
                   style={{
-                    borderColor: "gray",
-                    borderWidth: 1,
-                    borderRadius: 10,
+                    borderBottomColor: "gray",
+                    borderBottomWidth: 0.5,
                     height: 35,
                     width: "90%",
-                    backgroundColor:"#DEDBCE",
+                    backgroundColor: "#fff",
                     color: "black",
-                    marginTop: 40,
-                    paddingHorizontal:15,
+                    marginTop: 20,
+                    paddingHorizontal: 15,
                     marginBottom: 20,
                   }}
                   name="Names"
@@ -406,17 +437,42 @@ const MedicineDetails = ({
                   onChangeText={(text) => setPhone(text)}
                 />
 
-                <TouchableOpacity
-                  style={{ marginTop: 20 }}
-                  onPress={() => {
-                    book();
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-evenly",
+                    width: "100%",
+                    marginTop: 20,
                   }}
                 >
-                  <View
+                  <TouchableOpacity
+                    style={{
+                      width: "45%",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                    onPress={modalHandler}
+                  >
+                    <Text
+                      style={{
+                        color: "#2FAB4F",
+                        fontSize: 15,
+                        fontWeight: "500",
+                      }}
+                    >
+                      Maybe later
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => {
+                      book();
+                    }}
                     style={{
                       backgroundColor: "#178838",
-                      paddingHorizontal:20,
+                      paddingHorizontal: 20,
                       height: 40,
+                      width: "45%",
                       alignItems: "center",
                       justifyContent: "center",
                       borderRadius: 20,
@@ -436,17 +492,129 @@ const MedicineDetails = ({
                           fontWeight: "500",
                         }}
                       >
-                        Submit
+                        Pay booking
                       </Text>
                     )}
-                  </View>
-                </TouchableOpacity>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </TouchableWithoutFeedback>
         </TouchableOpacity>
       </Modal>
-      <BottomNavigator navigation={navigation} userRole={user?.user_type}/>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isVisible2}
+        style={{ backgroundColor: "#000000AA", margin: 0 }}
+      >
+        <TouchableOpacity
+          onPress={modalHandler2}
+          style={{
+            flex: 1,
+            backgroundColor: "#000000AA",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <TouchableWithoutFeedback>
+            <View
+              style={{
+                height: 270,
+                width: "95%",
+                padding: 5,
+                backgroundColor: "#fff",
+                borderRadius: 40,
+              }}
+            >
+              <AntDesign
+                name="shoppingcart"
+                style={{ textAlign: "center", marginTop: 30 }}
+                color="#2FAB4F"
+                size={40}
+              />
+              <Text
+                style={{
+                  marginTop: 30,
+                  marginLeft: "5%",
+                  fontSize: 17,
+                  textAlign: "center",
+                  color: "black",
+                }}
+              >
+                {route.params.medication_name} added to cart
+              </Text>
+              <View style={{ justifyContent: "center", alignItems: "center" }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    marginTop: 20,
+                  }}
+                >
+                  <TouchableOpacity
+                    style={{
+                      width: "45%",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                    onPress={() => {
+                      modalHandler2();
+                      navigation.navigate("Cart");
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "#2FAB4F",
+                        fontSize: 15,
+                        fontWeight: "600",
+                      }}
+                    >
+                      View cart
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => {
+                      modalHandler2();
+                      navigation.navigate("SearchPage", { title: "Medicine" });
+                    }}
+                    style={{
+                      backgroundColor: "#1E293B",
+                      paddingHorizontal: 20,
+                      height: 40,
+                      width: "49%",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderRadius: 20,
+                    }}
+                  >
+                    {loading ? (
+                      <ActivityIndicator
+                        size="large"
+                        color="white"
+                        style={{ margin: 15 }}
+                      />
+                    ) : (
+                      <Text
+                        style={{
+                          color: "white",
+                          fontSize: 15,
+                          fontWeight: "500",
+                        }}
+                      >
+                        Continue shopping
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </TouchableOpacity>
+      </Modal>
+      <BottomNavigator navigation={navigation} userRole={user?.user_type} />
     </View>
   );
 };

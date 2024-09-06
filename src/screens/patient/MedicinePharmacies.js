@@ -30,6 +30,7 @@ const MedicinePharmacies = ({ navigation, route }) => {
       })
       .then((res) => {
         setData(res.data.data);
+        console.log(res.data.data);
       })
       .catch((error) => {
         console.log(error);
@@ -37,7 +38,7 @@ const MedicinePharmacies = ({ navigation, route }) => {
   };
   useEffect(() => {
       getData();
-  }, []);
+  }, [route.params.medication_id]);
 
   return (
     <View styles={styles.container}>
@@ -47,7 +48,7 @@ const MedicinePharmacies = ({ navigation, route }) => {
           height: 100,
           borderBottomWidth: 0.2,
           borderBottomColor: "gray",
-          backgroundColor: "#EAE8E0",
+          backgroundColor: "#fff",
           paddingTop: 60,
         }}
       >
@@ -96,7 +97,7 @@ const MedicinePharmacies = ({ navigation, route }) => {
       </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        style={{ height: windowHeight - 100, backgroundColor: "#EAE8E0" }}
+        style={{ height: windowHeight - 100, backgroundColor: "#fff" }}
       >
         {data.length>0?(
             data.map((el) => {
@@ -104,7 +105,7 @@ const MedicinePharmacies = ({ navigation, route }) => {
                   <TouchableOpacity
                     onPress={()=>navigation.navigate("MedicineDetails",{id:el.id,branch:el.branch_name,dosage:route.params.dosage,form:route.params.form,medication_id:route.params.medication_id,medication_name:route.params.medication_name,unitPrice:el.unit_price})}
                     style={{
-                      backgroundColor: "#F5F4EC",
+                      backgroundColor: "#F1F5F9",
                       paddingTop: 15,
                       paddingRight: 10,
                       alignSelf: "center",

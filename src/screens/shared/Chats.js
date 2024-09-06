@@ -35,6 +35,15 @@ const Chats = ({ navigation,route }) => {
   const [user, setUser] = useState();
   const [refreshing, setRefreshing] = useState();
 
+  const formatTime = (date) => {
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    return `${hours}:${minutes} ${day}/${month}`;
+}
+
+
   const getNotifications = async () => {
     const token = await AsyncStorage.getItem("token");
     const user_ = await AsyncStorage.getItem("user");
@@ -91,6 +100,7 @@ const Chats = ({ navigation,route }) => {
       .then((res) => {
         setRefreshing(false);
         if (res.data.status) {
+          console.log(res.data.data);
           setChats(res.data.data);
           setChats_(res.data.data);
         } else {
@@ -108,21 +118,19 @@ const Chats = ({ navigation,route }) => {
     return(
       <TouchableOpacity
       onPress={() => {
-        navigation.navigate("ChatRoom",{names:`${item.first_name} ${item.last_name}`,id:item.id, userType:'doctor'})
+        navigation.navigate("ChatRoom",{names:`${item.first_name} ${item.last_name}`,id:item.id, userType:'doctor', newChats:item.unread_messages})
       }}
       style={{
         flexDirection: "row",
-        paddingVertical: 15,
+        paddingVertical: 8,
         paddingHorizontal:5,
         alignSelf: "center",
         width: "100%",
-        borderBottomWidth:0.2,
-        borderBottomColor:'gray'
       }}
     >
       <View style={{width:"13%",alignItems:"center"}}>
       <Image
-              source={item.profile_image?{uri:`${baseURL}/${item.profile_image}`}:require("../../images/user1.png")}
+              source={item.profile_image?{uri:`${item.profile_image}`}:require("../../images/user1.png")}
               resizeMode="stretch"
               style={{
                   marginTop:5,
@@ -140,15 +148,34 @@ const Chats = ({ navigation,route }) => {
           padding: 5,
         }}
       >
-        <Text
-          style={{
-            fontSize: 14,
-            color: "black",
-            fontWeight: "bold",
-          }}
-        >
-          {item?.first_name} {item?.last_name}
-        </Text>
+        <View style={{flexDirection:'row',justifyContent:'space-between'}}>
+        <View style={{width:'70%'}}>
+          <Text
+            style={{
+              fontSize: 14,
+              color: "black",
+              fontWeight: "bold",
+            }}
+          >
+            {item?.first_name} {item?.last_name}
+          </Text>
+        </View>
+        <View style={{width:'27%',justifyContent:'center',alignItems:'center'}}>
+          <Text style={{color:'gray',fontSize:10}}>{formatTime(new Date(item.latest_message_time))}</Text>
+        </View>
+        </View>
+        <View style={{flexDirection:'row',marginTop:3}}>
+          <View style={{width:'90%'}}>
+            <Text style={{fontSize:14,color:'gray'}}>{item.latest_message.slice(0,30)}  {item.latest_message.length>30&&'...'}</Text>
+          </View>
+          {item.unread_messages.length>0&&(
+            <View>
+            <View style={{height:20,width:20,borderRadius:10,backgroundColor:'#2FAB4F',justifyContent:'center',alignItems:'center'}}>
+              <Text style={{color:'white',fontSize:10,fontWeight:'500'}}>{item.unread_messages.length||0}</Text>
+            </View>
+          </View>
+          )}
+        </View>
          
       </View>
       {/* <View style={{width:'7%',justifyContent:'center'}}>
@@ -279,7 +306,8 @@ const Chats = ({ navigation,route }) => {
             {chats.length > 0 ? (
               <FlatList
               contentContainerStyle={{
-                paddingBottom:15
+                paddingBottom:15,
+                marginTop:10
               }}
               data={chats}
               showsVerticalScrollIndicator={false}
@@ -326,6 +354,7 @@ export default Chats;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor:'white'
   },
 
   shadow: {

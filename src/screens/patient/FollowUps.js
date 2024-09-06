@@ -217,7 +217,7 @@ const FollowUps = ({ navigation }) => {
       />
       <View
         style={{
-          backgroundColor: "#EAE8E0",
+          backgroundColor: "#F8FAFC",
           justifyContent: "center",
           alignItems: "center",
           height: "12%",

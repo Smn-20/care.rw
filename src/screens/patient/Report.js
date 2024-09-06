@@ -100,7 +100,7 @@ const Report = ({ navigation }) => {
             {...props}
             renderLabel={({ focused, route }) => {
               return (
-                <View style={{borderWidth:0.3,borderColor:'gray',paddingVertical:6,paddingHorizontal:8,borderRadius:15,backgroundColor:focused?'#2FAB4F':'transparent'}}>
+                <View style={{width:windowWidth/3.5, borderWidth:0.3,borderColor:'gray',paddingVertical:6,borderRadius:15,backgroundColor:focused?'#2FAB4F':'transparent',alignItems:'center'}}>
                 <Text style={{color:focused?'white':'black',fontSize:12,fontWeight:'500'}}>{route.title}</Text>
                 </View>
               );

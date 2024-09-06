@@ -57,7 +57,7 @@ const Medicines = ({ navigation, index }) => {
              style={{
                flexDirection: "row",
                alignItems: "center",
-               backgroundColor: "#F5F4EC",
+               backgroundColor: "#F1F5F9",
                width: "90%",
                paddingHorizontal:10,
                height: windowHeight / 15,

@@ -113,7 +113,7 @@ const SearchPage = ({ navigation, route }) => {
           height: 100,
           borderBottomWidth: 0.3,
           borderBottomColor: "black",
-          backgroundColor: "#EAE8E0",
+          backgroundColor: "#fff",
           paddingTop: 60,
         }}
       >
@@ -182,7 +182,7 @@ const SearchPage = ({ navigation, route }) => {
       </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        style={{ height: windowHeight - 100, backgroundColor: "#EAE8E0" }}
+        style={{ height: windowHeight - 100, backgroundColor: "#fff" }}
       >
         {data?.map((el) => {
           return (
@@ -190,7 +190,7 @@ const SearchPage = ({ navigation, route }) => {
               activeOpacity={1}
               onPress={()=>onClick(el)}
               style={{
-                backgroundColor: "#F5F4EC",
+                backgroundColor: "#F1F5F9",
                 paddingTop: route.params.title == "Medicine"?5:15,
                 paddingBottom: route.params.title == "Medicine"?5:0,
                 paddingRight: 10,

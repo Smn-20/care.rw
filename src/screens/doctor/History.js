@@ -77,7 +77,7 @@ const History = ({ navigation, index }) => {
                     return (
                         <View
                         style={{
-                          backgroundColor: "#F5F4EC",
+                          backgroundColor: "#fff",
                           paddingRight: 10,
                           paddingVertical:15,
                           alignSelf: "center",

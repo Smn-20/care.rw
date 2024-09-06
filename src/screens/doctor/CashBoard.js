@@ -24,7 +24,7 @@ import { BarChart } from "react-native-chart-kit";
 import axios from "axios";
 import { baseURL } from "../../BaseUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
+import { TabView, SceneMap, TabBar } from "react-native-tab-view";
 import History from "./History";
 import Subscriptions from "./Subscriptions";
 import BottomNavigator from "../../components/BottomNavigator";
@@ -46,20 +46,16 @@ const CashBoard = ({ navigation }) => {
 
   const [index, setIndex] = React.useState(0);
   const [routes] = React.useState([
-    { key: 'first', title: 'Subscriptions' },
-    { key: 'second', title: 'History' },
+    { key: "first", title: "Subscriptions" },
+    { key: "second", title: "History" },
   ]);
 
   const SubscriptionsRoute = () => (
-    <Subscriptions navigation={navigation} index={index}/>
+    <Subscriptions navigation={navigation} index={index} />
   );
-  
-  const HistoryRoute = () => (
-    <History navigation={navigation} index={index}/>
-  );
-  
-  
-  
+
+  const HistoryRoute = () => <History navigation={navigation} index={index} />;
+
   const renderScene = SceneMap({
     first: SubscriptionsRoute,
     second: HistoryRoute,
@@ -78,7 +74,6 @@ const CashBoard = ({ navigation }) => {
     ],
   };
 
-
   const withdraw = async () => {
     if (amount) {
       setLoading(true);
@@ -94,7 +89,7 @@ const CashBoard = ({ navigation }) => {
         .post(`${baseURL}/api/withdraw`, postObj, {
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         })
         .then((res) => {
@@ -115,17 +110,16 @@ const CashBoard = ({ navigation }) => {
     }
   };
 
-
   const getCashBoard = async () => {
     const token = await AsyncStorage.getItem("token");
     const user = await AsyncStorage.getItem("user");
     const doctorObj = JSON.parse(user);
-    setUser(doctorObj)
+    setUser(doctorObj);
     axios
       .get(`${baseURL}/api/cashboard/${doctorObj.id}`, {
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       })
       .then((res) => {
@@ -139,8 +133,6 @@ const CashBoard = ({ navigation }) => {
         console.log(error);
       });
   };
-
-
 
   useEffect(() => {
     getCashBoard();
@@ -197,83 +189,141 @@ const CashBoard = ({ navigation }) => {
       </View>
 
       <View
-          style={{
-            alignSelf: "center",
-            width: "90%",
-            marginTop:10,
-            backgroundColor:'white',
-            padding:12,
-            height: windowHeight / 5,
-            borderRadius: 20,
-            ...styles.shadow
-          }}
-        >
-          <View style={{flexDirection:"row"}}>
-            <View style={{width:'50%'}}>
-              <Text style={{fontSize:16,fontWeight:'bold'}}>Balance</Text>
-              <Text style={{fontSize:20,fontWeight:'400',marginTop:8}}>{data_?data_.balance:'0'} Rwf</Text>
-            </View>
-            <View style={{flexDirection:'row',width:"50%",justifyContent:'flex-end'}}>
+        style={{
+          alignSelf: "center",
+          width: "90%",
+          marginTop: 10,
+          backgroundColor: "white",
+          padding: 12,
+          height: windowHeight / 5,
+          borderRadius: 20,
+          ...styles.shadow,
+        }}
+      >
+        <View style={{ flexDirection: "row" }}>
+          <View style={{ width: "50%" }}>
+            <Text style={{ fontSize: 16, fontWeight: "bold" }}>Balance</Text>
+            <Text style={{ fontSize: 20, fontWeight: "400", marginTop: 8 }}>
+              {data_ ? data_.balance : "0"} Rwf
+            </Text>
+          </View>
+          <View
+            style={{
+              flexDirection: "row",
+              width: "50%",
+              justifyContent: "flex-end",
+            }}
+          >
             <TouchableOpacity
-              onPress={()=>setShowModal(true)}
+              onPress={() => setShowModal(true)}
               style={{
                 justifyContent: "center",
                 alignItems: "center",
                 height: 30,
-                paddingHorizontal:20,
+                paddingHorizontal: 20,
                 backgroundColor: "#2FAB4F",
                 borderRadius: 20,
               }}
             >
-              <Text style={{ fontWeight: "500", color:'white' }}>Withdraw</Text>
+              <Text style={{ fontWeight: "500", color: "white" }}>
+                Withdraw
+              </Text>
             </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={{flexDirection:"row",marginTop:20}}>
-            <View style={{width:'50%',flexDirection:'row',justifyContent:'space-evenly'}}>
-              <View style={{height:35,width:35,marginRight:4, borderRadius:7 ,backgroundColor:'#D5FFC2',justifyContent:'center',alignItems:'center'}}>
-              <Feather name="trending-up" size={24} color="green" />
-              </View>
-              <View>
-                <Text style={{fontSize:13,fontWeight:'bold'}}>Total Income</Text>
-                <Text style={{fontSize:13,color:'gray',marginTop:5}}>{data_?data_.total_amount_received:'0'} Rwf</Text>
-              </View>
-            </View>
-            <View style={{width:'50%',flexDirection:'row',justifyContent:'space-evenly'}}>
-              <View style={{height:35,width:35,marginRight:4, borderRadius:7 ,backgroundColor:'#FADBDF',justifyContent:'center',alignItems:'center'}}>
-              <Feather name="trending-down" size={24} color="red" />
-              </View>
-              <View>
-              <Text style={{fontSize:13,fontWeight:'bold'}}>Total Withdraw</Text>
-              <Text style={{fontSize:13,color:'gray',marginTop:5}}>{data_?data_.total_withdrawn_amount:'0'} Rwf</Text>
-              </View>
-            </View>
           </View>
         </View>
 
-        <View style={{height:(windowHeight*27/40)-65,marginTop:5}}>
-        <TabView
-      navigationState={{ index, routes }}
-      renderScene={renderScene}
-      onIndexChange={setIndex}
-      renderTabBar={props => {
-        return (
-          <TabBar
-            {...props}
-            renderLabel={({ focused, route }) => {
-              return (
-                <Text style={{color:focused?'#178838':'black',fontSize:14,fontWeight:'500'}}>{route.title}</Text>
-              );
+        <View style={{ flexDirection: "row", marginTop: 20 }}>
+          <View
+            style={{
+              width: "50%",
+              flexDirection: "row",
+              justifyContent: "space-evenly",
             }}
-            indicatorStyle={styles.indicatorStyle}
-            style={styles.tabBar}
-          />
-        );
-      }}
-      initialLayout={{ width: windowWidth }}
-    />
+          >
+            <View
+              style={{
+                height: 35,
+                width: 35,
+                marginRight: 4,
+                borderRadius: 7,
+                backgroundColor: "#D5FFC2",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Feather name="trending-up" size={24} color="green" />
+            </View>
+            <View>
+              <Text style={{ fontSize: 13, fontWeight: "bold" }}>
+                Total Income
+              </Text>
+              <Text style={{ fontSize: 13, color: "gray", marginTop: 5 }}>
+                {data_ ? data_.total_amount_received : "0"} Rwf
+              </Text>
+            </View>
+          </View>
+          <View
+            style={{
+              width: "50%",
+              flexDirection: "row",
+              justifyContent: "space-evenly",
+            }}
+          >
+            <View
+              style={{
+                height: 35,
+                width: 35,
+                marginRight: 4,
+                borderRadius: 7,
+                backgroundColor: "#FADBDF",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Feather name="trending-down" size={24} color="red" />
+            </View>
+            <View>
+              <Text style={{ fontSize: 13, fontWeight: "bold" }}>
+                Total Withdraw
+              </Text>
+              <Text style={{ fontSize: 13, color: "gray", marginTop: 5 }}>
+                {data_ ? data_.total_withdrawn_amount : "0"} Rwf
+              </Text>
+            </View>
+          </View>
         </View>
+      </View>
+
+      <View style={{ height: (windowHeight * 27) / 40 - 65, marginTop: 5 }}>
+        <TabView
+          navigationState={{ index, routes }}
+          renderScene={renderScene}
+          onIndexChange={setIndex}
+          renderTabBar={(props) => {
+            return (
+              <TabBar
+                {...props}
+                renderLabel={({ focused, route }) => {
+                  return (
+                    <Text
+                      style={{
+                        color: focused ? "#178838" : "black",
+                        fontSize: 14,
+                        fontWeight: "500",
+                      }}
+                    >
+                      {route.title}
+                    </Text>
+                  );
+                }}
+                indicatorStyle={styles.indicatorStyle}
+                style={styles.tabBar}
+              />
+            );
+          }}
+          initialLayout={{ width: windowWidth }}
+        />
+      </View>
       <Modal
         animationType="slide"
         transparent={true}
@@ -284,39 +334,29 @@ const CashBoard = ({ navigation }) => {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Enter amount to withdraw</Text>
             <TextInput
-              onFocus={() => setFocused(true)}
-              onBlur={() => setFocused(false)}
               onChangeText={(text) => setAmount(text)}
               placeholderTextColor={"#626262"}
               keyboardType="numeric"
               placeholder={"Amount"}
-              style={[
-                {
-                  fontSize: 14,
-                  padding: 8,
-                  backgroundColor: "#f1f4ff",
-                  borderRadius: 10,
-                  marginVertical: 15,
-                  width: "100%",
-                  height: 45,
-                },
-                focused && {
-                  borderWidth: 2,
-                  borderColor: "#626262",
-                  shadowOffset: { width: 4, height: 10 },
-                  shadowColor: "#626262",
-                  shadowOpacity: 0.2,
-                  shadowRadius: 10,
-                },
-              ]}
+              style={{
+                borderBottomColor: "gray",
+                borderBottomWidth: 0.5,
+                height: 35,
+                width: "90%",
+                backgroundColor: "#fff",
+                color: "black",
+                marginTop: 40,
+                paddingHorizontal: 15,
+                marginBottom: 20,
+              }}
             />
 
             <View style={styles.modalButtonContainer}>
               <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
+                style={[styles.modalButton, styles.cancelButton,{backgroundColor:'white'}]}
                 onPress={() => setShowModal(false)}
               >
-                <Text style={styles.modalButtonText}>Cancel</Text>
+                <Text style={[styles.modalButtonText,{color:'green'}]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.confirmButton]}
@@ -370,13 +410,13 @@ const CashBoard = ({ navigation }) => {
                 }}
               >
                 <View style={{ width: "33%" }}>
-                  <Text style={{fontSize:12}}>Amount</Text>
+                  <Text style={{ fontSize: 12 }}>Amount</Text>
                 </View>
                 <View style={{ width: "33%" }}>
-                  <Text style={{fontSize:12}}>Date</Text>
+                  <Text style={{ fontSize: 12 }}>Date</Text>
                 </View>
                 <View style={{ width: "33%" }}>
-                  <Text style={{fontSize:12}}>Status</Text>
+                  <Text style={{ fontSize: 12 }}>Status</Text>
                 </View>
               </View>
               {withdraws ? (
@@ -392,13 +432,19 @@ const CashBoard = ({ navigation }) => {
                         }}
                       >
                         <View style={{ width: "33%" }}>
-                          <Text style={{fontSize:12}}>{withdraw?.amount}</Text>
+                          <Text style={{ fontSize: 12 }}>
+                            {withdraw?.amount}
+                          </Text>
                         </View>
                         <View style={{ width: "33%" }}>
-                          <Text style={{fontSize:12}}>{withdraw?.created_at?.slice(0,10)}</Text>
+                          <Text style={{ fontSize: 12 }}>
+                            {withdraw?.created_at?.slice(0, 10)}
+                          </Text>
                         </View>
                         <View style={{ width: "33%" }}>
-                          <Text style={{fontSize:12}}>{withdraw?.status}</Text>
+                          <Text style={{ fontSize: 12 }}>
+                            {withdraw?.status}
+                          </Text>
                         </View>
                       </View>
                     );
@@ -440,6 +486,7 @@ export default CashBoard;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "white",
   },
   shadow: {
     shadowColor: "#707070",
@@ -500,15 +547,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#178838",
   },
   confirmButton: {
-    backgroundColor: "#38a169",
+    backgroundColor: "#178838",
   },
-  tabBar:{
-    backgroundColor:"#FBF9F1"
+  tabBar: {
+    backgroundColor: "#fff",
   },
-  indicatorStyle:{
-    backgroundColor:'#178838',
-    height:3,
-    borderTopLeftRadius:2,
-    borderTopRightRadius:2,
-  }
+  indicatorStyle: {
+    backgroundColor: "#178838",
+    height: 3,
+    borderTopLeftRadius: 2,
+    borderTopRightRadius: 2,
+  },
 });

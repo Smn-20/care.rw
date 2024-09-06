@@ -19,7 +19,7 @@ import {
 import * as BackgroundFetch from "expo-background-fetch";
 import * as TaskManager from "expo-task-manager";
 import {
-  MaterialIcons,
+  Octicons,
   AntDesign,
   EvilIcons,
   FontAwesome,
@@ -44,7 +44,6 @@ let date;
 let referenceId;
 
 const handleSubmit = () => {
-  console.log(referenceId);
   axios
     .get(`${baseURL}/api/payment-details/${referenceId}`, {
       headers: { "Content-Type": "application/json" },
@@ -53,6 +52,10 @@ const handleSubmit = () => {
       if (res.data.data?.payment_status == "successful") {
         //clear cart
         clearCart();
+        await unregisterBackgroundFetchAsync();
+      }
+      if(res.data?.data?.response_code==="600"){
+        alert("Insufficient balance!");
         await unregisterBackgroundFetchAsync();
       }
     })
@@ -113,8 +116,8 @@ const Cart = ({ navigation, cart, removeFromCart, clearCart }) => {
   const getUser = async () => {
     const user = await AsyncStorage.getItem("user");
     const userObj = JSON.parse(user);
-    setUser(userObj)
-  }
+    setUser(userObj);
+  };
 
   const handlePhone = (val) => {
     setPhone(val);
@@ -186,8 +189,11 @@ const Cart = ({ navigation, cart, removeFromCart, clearCart }) => {
       order_id: orderId,
       user_id: userObj.id,
       amount: totalAmount,
-      service_fee: answer==="pickup"? Math.ceil(totalAmount*pickUpFee/100) : deliveryFee,
-      service: answer==="pickup"? "pick_up":"delivery",
+      service_fee:
+        answer === "pickup"
+          ? Math.ceil((totalAmount * pickUpFee) / 100)
+          : deliveryFee,
+      service: answer === "pickup" ? "pick_up" : "delivery",
       phone_number: phone,
     });
 
@@ -198,6 +204,7 @@ const Cart = ({ navigation, cart, removeFromCart, clearCart }) => {
       .then((res) => {
         referenceId = res.data.reference_id;
         if (res.data.status) {
+          console.log(res.data)
           setLoading(false);
           alert("Check your phone to confirm payment or Dial *182*7*1#");
           setIsVisible(false);
@@ -214,6 +221,11 @@ const Cart = ({ navigation, cart, removeFromCart, clearCart }) => {
                   clearCart();
                   clearInterval(int);
                   await unregisterBackgroundFetchAsync();
+                }
+                if(res.data?.data?.response_code==="600"){
+                  alert("Insufficient balance!");
+                  await unregisterBackgroundFetchAsync();
+                  clearInterval(int);
                 }
               })
               .catch((err) => {
@@ -286,36 +298,39 @@ const Cart = ({ navigation, cart, removeFromCart, clearCart }) => {
   useEffect(() => {
     getUser();
     getServiceFees();
-  }, [])
-  
+  }, []);
+
   const getTotal = (amount) => {
-    if(answer==="pickup"){
-      return amount+Math.ceil(amount*pickUpFee/100)
+    if (answer === "pickup") {
+      return amount + Math.ceil((amount * pickUpFee) / 100);
+    } else if (answer === "delivery") {
+      return amount + deliveryFee;
+    } else {
+      return amount;
     }
-    else if(answer==="delivery"){
-      return amount+deliveryFee
-    }
-    else{
-      return amount
-    }
-  }
+  };
 
   const getServiceFees = async () => {
-    const token = await AsyncStorage.getItem('token')
-    axios.get(`${baseURL}/api/service-fees`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } }).then((res) => {
-        if(res.data.status){
-            setDeliveryFee(parseInt(res.data.data[0].delivery))
-            setPickUpFee(parseInt(res.data.data[0].pick_up))
-        }else{
-          alert('Service fees not found')
+    const token = await AsyncStorage.getItem("token");
+    axios
+      .get(`${baseURL}/api/service-fees`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((res) => {
+        if (res.data.status) {
+          setDeliveryFee(parseInt(res.data.data[0].delivery));
+          setPickUpFee(parseInt(res.data.data[0].pick_up));
+        } else {
+          alert("Service fees not found");
         }
-        
-        
-    }).catch((error) => {
-        console.log(error)
-    })
-}
-
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
 
   const deleteAlert = (itemId, branchId) =>
     Alert.alert(
@@ -336,9 +351,7 @@ const Cart = ({ navigation, cart, removeFromCart, clearCart }) => {
       <View
         style={{
           height: 100,
-          borderBottomWidth: 0.2,
-          borderBottomColor: "gray",
-          backgroundColor: "#EAE8E0",
+          backgroundColor: "#F8FAFC",
           paddingTop: 60,
         }}
       >
@@ -396,7 +409,7 @@ const Cart = ({ navigation, cart, removeFromCart, clearCart }) => {
                   style={{
                     backgroundColor: "white",
                     paddingHorizontal: 7,
-                    paddingVertical:15,
+                    paddingVertical: 15,
                     alignSelf: "center",
                     borderRadius: 10,
                     marginTop: 10,
@@ -428,7 +441,7 @@ const Cart = ({ navigation, cart, removeFromCart, clearCart }) => {
                       >
                         <View
                           style={{
-                            width: "58%",
+                            width: "100%",
                             justifyContent: "center",
                             alignItems: "flex-start",
                           }}
@@ -436,24 +449,36 @@ const Cart = ({ navigation, cart, removeFromCart, clearCart }) => {
                           <Text style={{ fontSize: 14, color: "black" }}>
                             {product.name}
                           </Text>
-                          <Text style={{marginTop:5}}>Quantity: {product.qty}</Text>
-                        </View>
-                        <View
-                          style={{
-                            width: "39%",
-                            alignItems: "flex-end",
-                          }}
-                        >
-                          <Text style={{ fontSize: 14, color: "green" }}>
-                            {product.price} Rwf
-                          </Text>
+                          <View style={{ flexDirection: "row" }}>
+                            <View style={{ width: "48%" }}>
+                              <Text style={{ marginTop: 5, fontSize: 12 }}>
+                                Quantity: {product.qty}
+                              </Text>
+                            </View>
+                            <View
+                              style={{
+                                width: "48%",
+                                alignItems: "flex-end",
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  marginTop: 5,
+                                  fontSize: 12,
+                                  color: "green",
+                                }}
+                              >
+                                {product.price} Rwf
+                              </Text>
+                            </View>
+                          </View>
                         </View>
                       </View>
                       <View
                         style={{
                           flexDirection: "row",
                           justifyContent: "space-between",
-                          marginTop:15
+                          marginTop: 15,
                         }}
                       >
                         <View
@@ -463,8 +488,8 @@ const Cart = ({ navigation, cart, removeFromCart, clearCart }) => {
                             alignItems: "flex-start",
                           }}
                         >
-                          <Text style={{ fontSize: 14, color: "black" }}>
-                          {product.branch}
+                          <Text style={{ fontSize: 12, color: "black" }}>
+                            {product.branch}
                           </Text>
                         </View>
                         <View
@@ -473,132 +498,155 @@ const Cart = ({ navigation, cart, removeFromCart, clearCart }) => {
                             alignItems: "flex-end",
                           }}
                         >
-                          <Text style={{ fontSize: 14, color: "black" }}>
+                          <Text style={{ fontSize: 12, color: "black" }}>
                             Total: {product.price} Rwf
                           </Text>
                         </View>
                       </View>
                     </View>
                     <TouchableOpacity
-                    onPress={() => {
-                      deleteAlert(product.id,product.branch_id);
-                    }}
+                      onPress={() => {
+                        deleteAlert(product.id, product.branch_id);
+                      }}
                       style={{
                         width: "12%",
                         justifyContent: "center",
                         alignItems: "center",
                       }}
                     >
-                      <FontAwesome6 name="trash-can" size={18} color="#f08080" />
+                      <FontAwesome6
+                        name="trash-can"
+                        size={18}
+                        color="#f08080"
+                      />
                     </TouchableOpacity>
                   </View>
-     
                 </View>
               ))}
 
-<View
+              <View
                 style={{
                   flexDirection: "row",
                   justifyContent: "space-between",
-                  marginHorizontal:10,
+                  borderTopColor:'#707070',
+                  borderTopWidth: 0.5,
+                  marginHorizontal: 10,
                   marginTop: 20,
                 }}
               >
-                <TouchableOpacity
-                  onPress={() => setAnswer("pickup")}
+                <View
                   style={{
                     flexDirection: "row",
                     paddingVertical: 10,
                     paddingHorizontal: 10,
                     width: "45%",
-                    alignSelf: "center",
-                    borderRadius: 10,
                     marginBottom: 20,
-                    borderColor: "gray",
-                    borderWidth: 0.3,
+                    justifyContent: "center",
                     alignItems: "center",
                   }}
                 >
-                  <Text style={{ flex: 1 }}>Pick-up</Text>
-                  <View
+                  <TouchableOpacity
+                    onPress={() => setAnswer("pickup")}
                     style={{
-                      height: 20,
+                      height: 25,
                       justifyContent: "center",
                       alignItems: "center",
-                      width: 20,
-                      borderRadius: 5,
-                      borderColor: "gray",
-                      borderWidth: 0.2,
-                      backgroundColor: answer === "pickup" ? "#178838" : "white",
+                      width: 25,
+                      borderRadius: 12.5,
+                      borderColor: answer === "pickup" ? "#178838" : "black",
+                      borderWidth: 2,
+                      backgroundColor: "white",
                     }}
                   >
                     {answer === "pickup" && (
-                      <Entypo name="check" size={16} color="white" />
+                      <FontAwesome name="circle" size={14} color="#178838" />
                     )}
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setAnswer("delivery")}
+                  </TouchableOpacity>
+                  <Text style={{ flex: 1, marginLeft: 10 }}>Pick-up</Text>
+                </View>
+                <View
                   style={{
                     flexDirection: "row",
                     paddingVertical: 10,
                     paddingHorizontal: 10,
                     width: "45%",
                     alignSelf: "center",
-                    borderRadius: 10,
                     marginBottom: 20,
-                    borderColor: "gray",
-                    borderWidth: 0.3,
                     alignItems: "center",
                   }}
                 >
-                  <Text style={{ flex: 1 }}>Delivery</Text>
-                  <View
+                  <TouchableOpacity
+                    onPress={() => setAnswer("delivery")}
                     style={{
-                      height: 20,
+                      height: 25,
                       justifyContent: "center",
                       alignItems: "center",
-                      width: 20,
-                      borderRadius: 5,
-                      borderColor: "gray",
-                      borderWidth: 0.2,
-                      backgroundColor: answer === "delivery" ? "#178838" : "white",
+                      width: 25,
+                      borderRadius: 12.5,
+                      borderColor: answer === "delivery" ? "#178838" : "black",
+                      borderWidth: 2,
+                      backgroundColor: "white",
                     }}
                   >
                     {answer === "delivery" && (
-                      <Entypo name="check" size={16} color="white" />
+                      <FontAwesome name="circle" size={14} color="#178838" />
                     )}
-                  </View>
-                </TouchableOpacity>
-              </View>
-
-              <View style={{ width: "100%", alignItems: "flex-start",marginLeft:'5%' }}>
-                <Text style={{ fontSize: 15, fontWeight: "bold", color:'#5C5C5C' }}>
-                  Subtotal: {JSON.stringify(format(totalAmount)).substring(
-                      1,
-                      JSON.stringify(format(totalAmount)).length - 4
-                    )}{" "}
-                    Rwf
-                </Text>
+                  </TouchableOpacity>
+                  <Text style={{ flex: 1, marginLeft: 10 }}>Delivery</Text>
+                </View>
               </View>
 
               {answer && (
-                <View style={{ width: "100%", alignItems: "flex-start",marginLeft:'5%',marginTop:8 }}>
-                <Text style={{ fontSize: 15, fontWeight: "bold", color:'#5C5C5C' }}>
-                  Service Fees: {answer === "delivery"?deliveryFee:Math.ceil(totalAmount*pickUpFee/100)} Rwf
+                <View
+                  style={{
+                    width: "100%",
+                    alignItems: "flex-start",
+                    marginLeft: "5%",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: "500",
+                      color: "#000",
+                    }}
+                  >
+                    Service Fees:{" "}
+                    {answer === "delivery"
+                      ? deliveryFee
+                      : Math.ceil((totalAmount * pickUpFee) / 100)}{" "}
+                    Rwf
+                  </Text>
+                </View>
+              )}
+
+              <View
+                style={{
+                  width: "100%",
+                  alignItems: "flex-start",
+                  marginLeft: "5%",
+                  marginTop:8
+                }}
+              >
+                <Text
+                  style={{ fontSize: 15, fontWeight: "500", color: "black" }}
+                >
+                  Subtotal:{" "}
+                  {JSON.stringify(format(totalAmount)).substring(
+                    1,
+                    JSON.stringify(format(totalAmount)).length - 4
+                  )}{" "}
+                  Rwf
                 </Text>
               </View>
-              )}
 
               <View
                 style={{
                   width: "90%",
                   height: 60,
-                  borderTopColor: "#707070",
-                  borderTopWidth: 0.5,
                   flexDirection: "row",
                   paddingVertical: 10,
-                  marginTop:15,
+                  marginTop: 15,
                   alignSelf: "center",
                 }}
               >
@@ -629,15 +677,15 @@ const Cart = ({ navigation, cart, removeFromCart, clearCart }) => {
             </View>
           )}
 
-          {(cartCount > 0 && answer) && (
+          {cartCount > 0 && answer && (
             <TouchableOpacity
               style={styles.signIn}
               onPress={() => modalHandler()}
             >
               <View
                 style={{
-                  backgroundColor: "#178838",
-                  width: "50%",
+                  backgroundColor: "#2FAB4F",
+                  width: "70%",
                   height: 40,
                   alignItems: "center",
                   borderRadius: 20,
@@ -647,7 +695,7 @@ const Cart = ({ navigation, cart, removeFromCart, clearCart }) => {
                 <Text
                   style={{ color: "white", fontSize: 16, fontWeight: "bold" }}
                 >
-                  Checkout
+                  Proceed to checkout
                 </Text>
               </View>
             </TouchableOpacity>
@@ -671,31 +719,41 @@ const Cart = ({ navigation, cart, removeFromCart, clearCart }) => {
           <TouchableWithoutFeedback>
             <View
               style={{
-                height: 250,
+                height: 270,
                 width: "90%",
-                backgroundColor: "#EAE8E0",
+                backgroundColor: "#fff",
                 borderRadius: 40,
               }}
             >
+              <Text
+                style={{
+                  marginTop: 30,
+                  marginLeft: "5%",
+                  fontSize: 18,
+                  fontWeight: "bold",
+                  color: "black",
+                }}
+              >
+                Checkout
+              </Text>
+              <Text
+                style={{
+                  marginTop: 30,
+                  marginLeft: "5%",
+                  fontSize: 14,
+                  color: "gray",
+                }}
+              >
+                Add your phone number to checkout
+              </Text>
               <View style={{ justifyContent: "center", alignItems: "center" }}>
-                <Text
-                  style={{
-                    marginTop: 30,
-                    fontSize: 18,
-                    fontWeight: "bold",
-                    color: "black",
-                  }}
-                >
-                  Enter momo number
-                </Text>
                 <TextInput
                   style={{
-                    borderColor: "gray",
-                    borderWidth: 1,
-                    borderRadius: 10,
+                    borderBottomColor: "gray",
+                    borderBottomWidth: 0.5,
                     height: 35,
                     width: "90%",
-                    backgroundColor: "#DEDBCE",
+                    backgroundColor: "#fff",
                     color: "black",
                     marginTop: 40,
                     paddingHorizontal: 15,
@@ -707,17 +765,42 @@ const Cart = ({ navigation, cart, removeFromCart, clearCart }) => {
                   onChangeText={(text) => handlePhone(text)}
                 />
 
-                <TouchableOpacity
-                  style={{ marginTop: 20 }}
-                  onPress={() => {
-                    createOrder();
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-evenly",
+                    width: "100%",
+                    marginTop: 20,
                   }}
                 >
-                  <View
+                  <TouchableOpacity
+                    style={{
+                      width: "45%",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                    onPress={modalHandler}
+                  >
+                    <Text
+                      style={{
+                        color: "#2FAB4F",
+                        fontSize: 15,
+                        fontWeight: "500",
+                      }}
+                    >
+                      Cancel
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => {
+                      createOrder();
+                    }}
                     style={{
                       backgroundColor: "#178838",
                       paddingHorizontal: 20,
                       height: 40,
+                      width: "45%",
                       alignItems: "center",
                       justifyContent: "center",
                       borderRadius: 20,
@@ -737,18 +820,18 @@ const Cart = ({ navigation, cart, removeFromCart, clearCart }) => {
                           fontWeight: "500",
                         }}
                       >
-                        Submit
+                        Pay
                       </Text>
                     )}
-                  </View>
-                </TouchableOpacity>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </TouchableWithoutFeedback>
         </TouchableOpacity>
       </Modal>
 
-      <BottomNavigator navigation={navigation} userRole={user?.user_type}/>
+      <BottomNavigator navigation={navigation} userRole={user?.user_type} />
     </View>
   );
 };
